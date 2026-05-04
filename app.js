@@ -645,28 +645,96 @@ function exportCSV(){
 // ===== EXPORT EXCEL =====
 function exportXlsx(){
   try{
-    const data=items.filter(x=>!x.isGroupHeader);
-    const headers=['Mục','Tiểu Mục','Nội Dung','DT KP Cấp Đầu Năm','Tồn Năm Trước','KP Cấp Đầu Năm','Giảm DT','Tăng DT','KP Được SD','KP Đã SD','KP Còn Lại','Tỷ Lệ SD (%)','Trạng Thái','Ngày HH'];
-    const rows=data.map(r=>{
-      const kpDuoc=calcKpDuocSD(r);
-      const conLai=calcConLai(r);
-      const pct=kpDuoc>0?((+r.daDung||0)/kpDuoc*100):0;
-      const st=getStatus(r);
-      const stTxt=st==='good'?'Bình thường':st==='warning'?'Cảnh báo':st==='danger'?'Vượt KP':'Chưa dùng';
-      return[r.muc||'',r.tieumuc||'',r.noidung||'',r.dtCapNam||0,r.tonNamTruoc||0,r.kpCapNam||0,r.giamDT||0,r.tangDT||0,kpDuoc,+r.daDung||0,conLai,Math.round(pct*10)/10,stTxt,r.hanDate||''];
+    // Hierarchical construction for Excel
+    const dataOnly = items.filter(x => !x.isGroupHeader);
+    const groups = ['KP THƯỜNG XUYÊN', 'KP KHÔNG THƯỜNG XUYÊN'];
+    
+    let rows = [];
+    let globalAlloc = 0, globalUsed = 0;
+
+    groups.forEach((g, gIdx) => {
+      const groupItems = dataOnly.filter(r => r.group === g);
+      if (groupItems.length === 0) return;
+
+      // Group Header Row
+      rows.push([`${gIdx + 1}. ${g}`, '', '', '', '', '', '', '', '', '', '', '', '', '']);
+
+      let groupAlloc = 0, groupUsed = 0;
+      
+      // Group by Main Content (Nội dung)
+      const contentGroups = {};
+      groupItems.forEach(item => {
+        if (!contentGroups[item.noidung]) contentGroups[item.noidung] = [];
+        contentGroups[item.noidung].push(item);
+      });
+
+      Object.keys(contentGroups).forEach(contentName => {
+        const subItems = contentGroups[contentName];
+        let subAlloc = 0, subUsed = 0;
+
+        // Sort: Allocation rows first
+        subItems.sort((a, b) => (b.dtCapNam || 0) - (a.dtCapNam || 0));
+
+        subItems.forEach(r => {
+          const kpDuoc = calcKpDuocSD(r);
+          const conLai = calcConLai(r);
+          const pct = kpDuoc > 0 ? ((+r.daDung || 0) / kpDuoc * 100) : 0;
+          const st = getStatus(r);
+          const stTxt = st === 'good' ? 'Bình thường' : st === 'warning' ? 'Cảnh báo' : st === 'danger' ? 'Vượt KP' : 'Chưa dùng';
+          
+          subAlloc += kpDuoc;
+          subUsed += (+r.daDung || 0);
+
+          rows.push([r.muc || '', r.tieumuc || '', r.noidung || '', r.dtCapNam || 0, r.tonNamTruoc || 0, r.kpCapNam || 0, r.giamDT || 0, r.tangDT || 0, kpDuoc, +r.daDung || 0, conLai, Math.round(pct * 10) / 10, stTxt, r.hanDate || '']);
+        });
+
+        // Content Subtotal
+        if (subItems.length > 1 || (subItems.length === 1 && subItems[0].dtCapNam > 0)) {
+          const subRemain = subAlloc - subUsed;
+          const subPct = subAlloc > 0 ? (subUsed / subAlloc * 100) : 0;
+          rows.push(['', '', `Tổng: ${contentName}`, 
+            subItems.reduce((s,r)=>s+(+r.dtCapNam||0),0), 
+            subItems.reduce((s,r)=>s+(+r.tonNamTruoc||0),0), 
+            subItems.reduce((s,r)=>s+(+r.kpCapNam||0),0), 
+            subItems.reduce((s,r)=>s+(+r.giamDT||0),0), 
+            subItems.reduce((s,r)=>s+(+r.tangDT||0),0), 
+            subAlloc, subUsed, subRemain, Math.round(subPct * 10) / 10, '', '']);
+        }
+        groupAlloc += subAlloc;
+        groupUsed += subUsed;
+      });
+
+      // Group Subtotal
+      const groupRemain = groupAlloc - groupUsed;
+      const groupPct = groupAlloc > 0 ? (groupUsed / groupAlloc * 100) : 0;
+      rows.push(['', '', `CỘNG ${g}`, 
+        groupItems.reduce((s,r)=>s+(+r.dtCapNam||0),0), 
+        groupItems.reduce((s,r)=>s+(+r.tonNamTruoc||0),0), 
+        groupItems.reduce((s,r)=>s+(+r.kpCapNam||0),0), 
+        groupItems.reduce((s,r)=>s+(+r.giamDT||0),0), 
+        groupItems.reduce((s,r)=>s+(+r.tangDT||0),0), 
+        groupAlloc, groupUsed, groupRemain, Math.round(groupPct * 10) / 10, '', '']);
+      
+      // Add a spacer row
+      rows.push(['', '', '', '', '', '', '', '', '', '', '', '', '', '']);
+
+      globalAlloc += groupAlloc;
+      globalUsed += groupUsed;
     });
-    // Add totals row
-    const ta=data.reduce((s,r)=>s+calcKpDuocSD(r),0);
-    const tu=data.reduce((s,r)=>s+(+r.daDung||0),0);
-    rows.push(['','','TỔNG CỘNG',
-      data.reduce((s,r)=>s+(+r.dtCapNam||0),0),
-      data.reduce((s,r)=>s+(+r.tonNamTruoc||0),0),
-      data.reduce((s,r)=>s+(+r.kpCapNam||0),0),
-      data.reduce((s,r)=>s+(+r.giamDT||0),0),
-      data.reduce((s,r)=>s+(+r.tangDT||0),0),
-      ta,tu,ta-tu,
-      ta>0?Math.round(tu/ta*1000)/10:0,
-      '','' ]);
+
+    // Grand Total
+    const globalRemain = globalAlloc - globalUsed;
+    const globalPct = globalAlloc > 0 ? (globalUsed / globalAlloc * 100) : 0;
+    rows.push(['', '', 'TỔNG CỘNG (I + II)', 
+      dataOnly.reduce((s,r)=>s+(+r.dtCapNam||0),0), 
+      dataOnly.reduce((s,r)=>s+(+r.tonNamTruoc||0),0), 
+      dataOnly.reduce((s,r)=>s+(+r.kpCapNam||0),0), 
+      dataOnly.reduce((s,r)=>s+(+r.giamDT||0),0), 
+      dataOnly.reduce((s,r)=>s+(+r.tangDT||0),0), 
+      globalAlloc, globalUsed, globalRemain, Math.round(globalPct * 10) / 10, '', '']);
+
+    const ta = globalAlloc;
+    const tu = globalUsed;
     // Build worksheet with headers
     const agencyHeader = [
       ['SỞ Y TẾ TỈNH LAI CHÂU'],
@@ -688,10 +756,9 @@ function exportXlsx(){
     const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,'Ngan Sach '+currentYear);
     // Add summary sheet
-    const groups=['KP THƯỜNG XUYÊN','KP KHÔNG THƯỜNG XUYÊN'];
     const sumHeaders=['Nhóm Mục','KP Được SD','Đã Sử Dụng','Còn Lại','Tỷ Lệ (%)'];
     const sumRows=groups.map(g=>{
-      const gd=data.filter(r=>r.group===g);
+      const gd=dataOnly.filter(r=>r.group===g);
       const ga=gd.reduce((s,r)=>s+calcKpDuocSD(r),0);
       const gu=gd.reduce((s,r)=>s+(+r.daDung||0),0);
       return[g,ga,gu,ga-gu,ga>0?Math.round(gu/ga*1000)/10:0];
@@ -743,22 +810,94 @@ function exportPDF(){
     doc.setFont(fontName, 'normal');
     doc.text('Năm ngân sách: ' + currentYear, 148, 37, { align: 'center' });
     doc.text('Ngày xuất: ' + new Date().toLocaleDateString('vi-VN'), 148, 43, { align: 'center' });
-    // Table data
-    const data=items.filter(x=>!x.isGroupHeader);
+    // Table data construction with grouping
+    const dataOnly=items.filter(x=>!x.isGroupHeader);
+    const groups=['KP THƯỜNG XUYÊN','KP KHÔNG THƯỜNG XUYÊN'];
     const headers=[['Mục','T.Mục','Nội Dung','DT KP Cấp','Tồn Năm Trước','KP Cấp ĐN','Giảm DT','Tăng DT','KP Được SD','KP Đã SD','KP Còn Lại','Trạng thái']];
-    const rows=data.map(r=>{
-      const kpDuoc=calcKpDuocSD(r);
-      const conLai=calcConLai(r);
-      const st=getStatus(r);
-      const stTxt=st==='good'?'Bình thường':st==='warning'?'Cảnh báo':st==='danger'?'Vượt KP':'Chưa dùng';
-      return[r.muc||'',r.tieumuc||'',r.noidung||'',fmt(r.dtCapNam||0),fmt(r.tonNamTruoc||0),fmt(r.kpCapNam||0),fmt(r.giamDT||0),fmt(r.tangDT||0),fmt(kpDuoc),fmt(r.daDung||0),fmt(conLai),stTxt];
+    
+    let rows=[];
+    let globalAlloc = 0, globalUsed = 0;
+
+    groups.forEach((g, gIdx) => {
+      const groupItems = dataOnly.filter(r => r.group === g);
+      if (groupItems.length === 0) return;
+
+      // Group Header Row
+      rows.push({
+        type: 'groupHeader',
+        data: [`${gIdx + 1}. ${g}`, '', '', '', '', '', '', '', '', '', '', '']
+      });
+
+      let groupAlloc = 0, groupUsed = 0;
+      
+      // Group by Main Content (Nội dung)
+      const contentGroups = {};
+      groupItems.forEach(item => {
+        if (!contentGroups[item.noidung]) contentGroups[item.noidung] = [];
+        contentGroups[item.noidung].push(item);
+      });
+
+      Object.keys(contentGroups).forEach(contentName => {
+        const subItems = contentGroups[contentName];
+        let subAlloc = 0, subUsed = 0;
+
+        // Sort: Allocation rows first
+        subItems.sort((a, b) => (b.dtCapNam || 0) - (a.dtCapNam || 0));
+
+        subItems.forEach(r => {
+          const kpDuoc = calcKpDuocSD(r);
+          const conLai = calcConLai(r);
+          const st = getStatus(r);
+          const stTxt = st==='good'?'Bình thường':st==='warning'?'Cảnh báo':st==='danger'?'Vượt KP':'Chưa dùng';
+          
+          subAlloc += kpDuoc;
+          subUsed += (+r.daDung || 0);
+
+          rows.push({
+            type: 'item',
+            data: [r.muc||'', r.tieumuc||'', r.noidung||'', fmt(r.dtCapNam||0), fmt(r.tonNamTruoc||0), fmt(r.kpCapNam||0), fmt(r.giamDT||0), fmt(r.tangDT||0), fmt(kpDuoc), fmt(r.daDung||0), fmt(conLai), stTxt]
+          });
+        });
+
+        // Content Subtotal
+        if (subItems.length > 1 || (subItems.length === 1 && subItems[0].dtCapNam > 0)) {
+          const subRemain = subAlloc - subUsed;
+          rows.push({
+            type: 'contentTotal',
+            data: ['', '', `Tổng: ${contentName}`, fmt(subItems.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(subAlloc), fmt(subUsed), fmt(subRemain), '']
+          });
+        }
+        groupAlloc += subAlloc;
+        groupUsed += subUsed;
+      });
+
+      // Group Subtotal
+      const groupRemain = groupAlloc - groupUsed;
+      rows.push({
+        type: 'groupTotal',
+        data: ['', '', `CỘNG ${g}`, fmt(groupItems.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(groupAlloc), fmt(groupUsed), fmt(groupRemain), '']
+      });
+
+      globalAlloc += groupAlloc;
+      globalUsed += groupUsed;
+      // Spacer row for PDF clarity
+      rows.push({
+        type: 'spacer',
+        data: ['', '', '', '', '', '', '', '', '', '', '', '']
+      });
     });
-    // Totals
-    const ta=data.reduce((s,r)=>s+calcKpDuocSD(r),0);
-    const tu=data.reduce((s,r)=>s+(+r.daDung||0),0);
-    rows.push(['','','TỔNG CỘNG',fmt(data.reduce((s,r)=>s+(+r.dtCapNam||0),0)),fmt(data.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)),fmt(data.reduce((s,r)=>s+(+r.kpCapNam||0),0)),fmt(data.reduce((s,r)=>s+(+r.giamDT||0),0)),fmt(data.reduce((s,r)=>s+(+r.tangDT||0),0)),fmt(ta),fmt(tu),fmt(ta-tu),'']);
+
+    // Grand Total
+    const globalRemain = globalAlloc - globalUsed;
+    rows.push({
+      type: 'grandTotal',
+      data: ['', '', 'TỔNG CỘNG (I + II)', fmt(dataOnly.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(globalAlloc), fmt(globalUsed), fmt(globalRemain), '']
+    });
+
     doc.autoTable({
-      head:headers,body:rows,startY:50,
+      head:headers,
+      body:rows.map(r => r.data),
+      startY:50,
       theme:'grid',
       styles:{fontSize:7,cellPadding:1.5,overflow:'linebreak',font:fontName},
       headStyles:{fillColor:[30,58,138],textColor:255,fontSize:7,fontStyle:'bold',halign:'center',font:fontName},
@@ -770,18 +909,39 @@ function exportPDF(){
       },
       alternateRowStyles:{fillColor:[240,245,255]},
       didParseCell:function(data){
-        if(data.row.index===rows.length-1){
-          data.cell.styles.fontStyle='bold';data.cell.styles.fillColor=[220,230,255];
+        const rowType = rows[data.row.index].type;
+        
+        if(rowType === 'groupHeader'){
+          data.cell.styles.fontStyle='bold';
+          data.cell.styles.fillColor=[230, 240, 255];
+          data.cell.styles.textColor=[30, 58, 138];
+          data.cell.styles.fontSize=8;
         }
-        if(data.column.index===10&&data.section==='body'&&data.row.index<rows.length-1){
+        if(rowType === 'contentTotal'){
+          data.cell.styles.fontStyle='italic';
+          data.cell.styles.textColor=[100, 100, 100];
+        }
+        if(rowType === 'groupTotal'){
+          data.cell.styles.fontStyle='bold';
+          data.cell.styles.fillColor=[240, 240, 240];
+        }
+        if(rowType === 'grandTotal'){
+          data.cell.styles.fontStyle='bold';
+          data.cell.styles.fillColor=[220, 230, 255];
+          data.cell.styles.fontSize=8;
+        }
+
+        // Negative numbers in red for specific columns
+        if(data.column.index===10 && data.section==='body'){
           const val=data.cell.raw||'';
-          if(val.toString().startsWith('-'))data.cell.styles.textColor=[220,38,38];
+          if(val.toString().startsWith('-')) data.cell.styles.textColor=[220,38,38];
         }
-        if(data.column.index===11&&data.section==='body'){
+        // Status colors
+        if(data.column.index===11 && data.section==='body' && rowType === 'item'){
           const v=data.cell.raw;
-          if(v==='Vượt KP')data.cell.styles.textColor=[220,38,38];
-          else if(v==='Cảnh báo')data.cell.styles.textColor=[217,119,6];
-          else if(v==='Bình thường')data.cell.styles.textColor=[5,150,105];
+          if(v==='Vượt KP') data.cell.styles.textColor=[220,38,38];
+          else if(v==='Cảnh báo') data.cell.styles.textColor=[217,119,6];
+          else if(v==='Bình thường') data.cell.styles.textColor=[5,150,105];
         }
       }
     });
