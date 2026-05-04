@@ -783,13 +783,18 @@ function exportPDF(){
   try{
     const jsPDFClass=window.jspdf&&window.jspdf.jsPDF?window.jspdf.jsPDF:window.jsPDF;
     if(!jsPDFClass){toast('Thu vien jsPDF chua duoc tai. Vui long kiem tra ket noi mang.','error');return;}
-    const doc=new jsPDFClass({orientation:'landscape',unit:'mm',format:'a4'});
+    
+    // Position 1: 'l' (landscape), Position 2: 'mm', Position 3: 'a4'
+    const doc = new jsPDFClass('l', 'mm', 'a4');
+    
     // Setup font
     if (window.TIMES_FONT_B64) {
-      doc.addFileToVFS('times.ttf', window.TIMES_FONT_B64);
-      doc.addFont('times.ttf', 'TimesNewRoman', 'normal');
-      doc.addFont('times.ttf', 'TimesNewRoman', 'bold');
-      doc.setFont('TimesNewRoman');
+      try {
+        doc.addFileToVFS('times.ttf', window.TIMES_FONT_B64);
+        doc.addFont('times.ttf', 'TimesNewRoman', 'normal');
+        doc.addFont('times.ttf', 'TimesNewRoman', 'bold');
+        doc.setFont('TimesNewRoman');
+      } catch(e) { console.warn('Font setup error:', e); }
     }
     const fontName = window.TIMES_FONT_B64 ? 'TimesNewRoman' : 'helvetica';
 
@@ -894,18 +899,21 @@ function exportPDF(){
       data: ['', '', 'TỔNG CỘNG (I + II)', fmt(dataOnly.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(globalAlloc), fmt(globalUsed), fmt(globalRemain), '']
     });
 
+    console.log('PDF: Generating rows...', rows.length);
+
     doc.autoTable({
       head:headers,
       body:rows.map(r => r.data),
       startY:50,
       theme:'grid',
-      styles:{fontSize:7,cellPadding:1.5,overflow:'linebreak',font:fontName},
-      headStyles:{fillColor:[30,58,138],textColor:255,fontSize:7,fontStyle:'bold',halign:'center',font:fontName},
+      margin: { left: 10, right: 10 },
+      styles:{fontSize:6.5,cellPadding:1.2,overflow:'linebreak',font:fontName},
+      headStyles:{fillColor:[30,58,138],textColor:255,fontSize:6.5,fontStyle:'bold',halign:'center',font:fontName},
       columnStyles:{
-        0:{cellWidth:10,halign:'center'},1:{cellWidth:12,halign:'center'},2:{cellWidth:42},
-        3:{cellWidth:22,halign:'right'},4:{cellWidth:20,halign:'right'},5:{cellWidth:20,halign:'right'},
-        6:{cellWidth:18,halign:'right'},7:{cellWidth:18,halign:'right'},8:{cellWidth:22,halign:'right'},
-        9:{cellWidth:22,halign:'right'},10:{cellWidth:22,halign:'right'},11:{cellWidth:18,halign:'center'}
+        0:{cellWidth:8,halign:'center'},1:{cellWidth:10,halign:'center'},2:{cellWidth:40},
+        3:{cellWidth:20,halign:'right'},4:{cellWidth:18,halign:'right'},5:{cellWidth:18,halign:'right'},
+        6:{cellWidth:16,halign:'right'},7:{cellWidth:16,halign:'right'},8:{cellWidth:20,halign:'right'},
+        9:{cellWidth:20,halign:'right'},10:{cellWidth:20,halign:'right'},11:{cellWidth:16,halign:'center'}
       },
       alternateRowStyles:{fillColor:[240,245,255]},
       didParseCell:function(data){
