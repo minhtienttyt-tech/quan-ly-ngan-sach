@@ -613,6 +613,24 @@
       if (page === 'dashboard' && window.renderDashboard) window.renderDashboard();
       if (page === 'budget' && window.renderTable) window.renderTable();
     };
+
+    // Orientation Checker (JS)
+    function checkOrientation() {
+      const overlay = document.getElementById('orientation-warning');
+      if (!overlay) return;
+      
+      const isPortrait = window.innerHeight > window.innerWidth;
+      const isMobileOrTablet = window.innerWidth <= 1200;
+      
+      if (isMobileOrTablet && isPortrait) {
+        overlay.style.display = 'flex';
+      } else {
+        overlay.style.display = 'none';
+      }
+    }
+    
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('load', checkOrientation);
   </script>
   <script src="app.js?v=9"></script>
 </body>

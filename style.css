@@ -935,9 +935,7 @@ body.role-user .role-admin-only { display: none !important; }
   color: #fff;
 }
 
-@media screen and (max-width: 1200px) and (orientation: portrait) {
-  .orientation-overlay { display: flex; }
-}
+/* Orientation Overlay is now handled via JS in index.html for better compatibility */
 
 .orientation-content h3 { margin: 15px 0 10px; font-size: 20px; color: var(--blue-light); }
 .orientation-content p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }

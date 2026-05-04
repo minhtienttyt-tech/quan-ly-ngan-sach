@@ -920,9 +920,11 @@ function exportPDF(){
         
         if(rowType === 'groupHeader'){
           data.cell.styles.fontStyle='bold';
-          data.cell.styles.fillColor=[230, 240, 255];
-          data.cell.styles.textColor=[30, 58, 138];
-          data.cell.styles.fontSize=8;
+          data.cell.styles.fillColor=[30, 58, 138];
+          data.cell.styles.textColor=[255, 255, 255];
+          data.cell.styles.fontSize=9;
+          data.cell.colSpan = 12; // Gộp toàn bộ 12 cột
+          data.cell.styles.halign = 'left';
         }
         if(rowType === 'contentTotal'){
           data.cell.styles.fontStyle='italic';
