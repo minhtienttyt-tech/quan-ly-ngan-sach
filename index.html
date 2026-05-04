@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="theme-color" content="#0a0f1e"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <title>Theo Dõi Nguồn Kinh Phí Ngân Sách Nhà Nước</title>
+  <meta name="description" content="Hệ thống theo dõi, quản lý và sử dụng nguồn kinh phí ngân sách nhà nước cấp theo từng mục, tiểu mục chi tiêu."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css?v=4"/>
+</head>
+<body>
+  <div id="login-screen" style="height: 100vh; width: 100vw; display: flex; align-items: center; justify-content: center; background: #0f172a;">
+    <div class="login-card" style="background: #1e293b; padding: 32px; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 400px; text-align: center;">
+      <div style="font-size: 48px; margin-bottom: 16px;">🏛️</div>
+      <h2 style="margin-bottom: 8px; color: #f8fafc;">Đăng Nhập Hệ Thống</h2>
+      <p style="color: #94a3b8; margin-bottom: 24px; font-size: 14px;">Quản lý nguồn kinh phí NSNN</p>
+      
+      <div class="form-group" style="text-align: left; margin-bottom: 16px;">
+        <label style="display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: #cbd5e1; text-transform: uppercase;">Tài khoản</label>
+        <input type="text" id="login-username" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #f8fafc;" placeholder="Nhập tài khoản (admin hoặc user)">
+      </div>
+      
+      <div class="form-group" style="text-align: left; margin-bottom: 24px;">
+        <label style="display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: #cbd5e1; text-transform: uppercase;">Mật khẩu</label>
+        <input type="password" id="login-password" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #f8fafc;" placeholder="Nhập mật khẩu (admin hoặc user)">
+      </div>
+      
+      <button id="main-budget-login-btn" class="btn-primary" style="width: 100%; padding: 14px; border-radius: 8px; font-size: 15px; font-weight: 600;" onclick="if(window.handleLogin) window.handleLogin()">Đăng Nhập</button>
+      <div id="login-error" style="color: #ef4444; margin-top: 12px; font-size: 13px; display: none;">Tài khoản hoặc mật khẩu không đúng!</div>
+      
+      <div style="margin-top: 24px; font-size: 12px; color: #94a3b8; text-align: left; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 6px;">
+        <strong>Tài khoản Demo (Nhập để trải nghiệm):</strong><br>
+        - Quyền Quản Trị (Admin): <code>admin</code> / <code>Minhtien@1986</code><br>
+        - Quyền Xem (Thành viên): <code>user</code> / <code>user</code>
+      </div>
+    </div>
+  </div>
+
+  <div id="main-app" style="display:none;">
+    <div id="app">
+      <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <button id="sidebarClose" onclick="document.getElementById('sidebar').classList.remove('open')" style="display:none;position:absolute;top:12px;right:12px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:13px;font-weight:600;">✕ Đóng</button>
+      <div class="sidebar-brand">
+        <div class="brand-icon">🏛️</div>
+        <div class="brand-text">
+          <span class="brand-title">Ngân Sách</span>
+          <span class="brand-sub">Nhà Nước</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">CHỨC NĂNG CHÍNH</div>
+        <a href="#" class="nav-item active" data-page="dashboard" id="nav-dashboard">
+          <span class="nav-icon">📊</span>
+          <span>Tổng quan</span>
+        </a>
+        
+        <div class="nav-section-title">PHÂN HỆ DỰ TOÁN</div>
+        <a href="#" class="nav-item" data-page="budget" data-filter="ton" id="nav-budget-ton">
+          <span class="nav-icon">⏮️</span>
+          <span>Tồn năm trước</span>
+        </a>
+        <a href="#" class="nav-item" data-page="budget" data-filter="cap" id="nav-budget-cap">
+          <span class="nav-icon">📥</span>
+          <span>KP cấp đầu năm</span>
+        </a>
+        <a href="#" class="nav-item" data-page="budget" data-filter="tang" id="nav-budget-tang">
+          <span class="nav-icon">📈</span>
+          <span>Tăng dự toán</span>
+        </a>
+        <a href="#" class="nav-item" data-page="budget" data-filter="giam" id="nav-budget-giam">
+          <span class="nav-icon">📉</span>
+          <span>Giảm dự toán</span>
+        </a>
+        <a href="#" class="nav-item" data-page="budget" data-filter="all" id="nav-budget-all">
+          <span class="nav-icon">📋</span>
+          <span>Tất cả khoản chi</span>
+        </a>
+
+        <div class="nav-section-title role-admin-only">NGHIỆP VỤ KHÁC</div>
+        <a href="#" class="nav-item role-admin-only" data-page="add" id="nav-add">
+          <span class="nav-icon">➕</span>
+          <span>Thêm khoản chi</span>
+        </a>
+        <a href="#" class="nav-item role-admin-only" data-page="import" id="nav-import">
+          <span class="nav-icon">📂</span>
+          <span>Nhập dữ liệu cũ</span>
+        </a>
+        <a href="#" class="nav-item" data-page="report" id="nav-report">
+          <span class="nav-icon">📈</span>
+          <span>Báo cáo</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="fiscal-year-badge" style="margin-bottom: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px;" id="btnLogout">
+          <div style="font-weight: 600; color: var(--text-primary);"><span style="font-size: 16px; margin-right: 4px;">👤</span> <span id="currentUserRole">Admin</span></div>
+          <div style="font-size: 11px; color: var(--red); text-transform: uppercase;">Đăng xuất</div>
+        </div>
+        <div class="fiscal-year-badge">Năm ngân sách: <strong id="fiscal-year-display">2025</strong></div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="menu-toggle" id="menuToggle">☰</button>
+          <div>
+            <h1 class="page-title" id="page-title">Tổng Quan Ngân Sách</h1>
+            <p class="page-sub" id="page-sub">Theo dõi tình hình sử dụng kinh phí ngân sách nhà nước cấp</p>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="year-selector">
+            <label>Năm:</label>
+            <select id="yearSelect">
+              <option value="2024">2024</option>
+              <option value="2025" selected>2025</option>
+              <option value="2026">2026</option>
+            </select>
+          </div>
+          <button class="btn-export" id="btnExport">📥 CSV</button>
+          <button class="btn-export btn-xlsx" id="btnExportXlsx">📊 Excel</button>
+          <button class="btn-export btn-pdf" id="btnExportPdf">📄 PDF</button>
+          <div class="date-display" id="currentDate"></div>
+        </div>
+      </header>
+
+      <!-- Pages -->
+      <div class="page-container">
+
+        <!-- DASHBOARD PAGE -->
+        <div class="page active" id="page-dashboard">
+          <!-- KPI Cards -->
+          <div class="kpi-grid">
+            <div class="kpi-card kpi-blue">
+              <div class="kpi-icon">💰</div>
+              <div class="kpi-content">
+                <div class="kpi-label">Tổng KP Được Cấp</div>
+                <div class="kpi-value" id="kpi-total-allocated">0</div>
+                <div class="kpi-sub" id="kpi-total-allocated-sub">Dự toán đầu năm</div>
+              </div>
+            </div>
+            <div class="kpi-card kpi-green">
+              <div class="kpi-icon">✅</div>
+              <div class="kpi-content">
+                <div class="kpi-label">KP Đã Sử Dụng</div>
+                <div class="kpi-value" id="kpi-used">0</div>
+                <div class="kpi-sub" id="kpi-used-pct">0% tổng KP</div>
+              </div>
+            </div>
+            <div class="kpi-card kpi-orange">
+              <div class="kpi-icon">📌</div>
+              <div class="kpi-content">
+                <div class="kpi-label">KP Còn Lại</div>
+                <div class="kpi-value" id="kpi-remaining">0</div>
+                <div class="kpi-sub" id="kpi-remaining-pct">0% tổng KP</div>
+              </div>
+            </div>
+            <div class="kpi-card kpi-red">
+              <div class="kpi-icon">⚠️</div>
+              <div class="kpi-content">
+                <div class="kpi-label">Khoản Vượt / Cảnh Báo</div>
+                <div class="kpi-value" id="kpi-overrun">0</div>
+                <div class="kpi-sub">Mục cần chú ý</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Overall progress -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">📉 Tiến Độ Sử Dụng Kinh Phí Tổng Thể</h2>
+            </div>
+            <div class="overall-progress">
+              <div class="progress-labels">
+                <span>0%</span>
+                <span id="overall-pct-label">0%</span>
+                <span>100%</span>
+              </div>
+              <div class="progress-bar-wrap">
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" id="overall-progress-bar" style="width:0%"></div>
+                </div>
+              </div>
+              <div class="progress-legend">
+                <span><span class="dot green"></span>Đã sử dụng</span>
+                <span><span class="dot orange"></span>Còn lại</span>
+                <span><span class="dot red"></span>Vượt mức</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Category breakdown -->
+          <div class="two-col">
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">🗂️ Phân Bổ Theo Nhóm Mục</h2>
+              </div>
+              <div id="category-breakdown"></div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">🚨 Các Khoản Sắp Hết / Vượt KP</h2>
+              </div>
+              <div id="alert-items"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BUDGET TABLE PAGE -->
+        <div class="page" id="page-budget">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">📋 Bảng Dự Toán & Sử Dụng Kinh Phí</h2>
+              <div class="table-controls">
+                <button class="btn-primary role-admin-only" onclick="budgetNavigate('add')" style="padding: 8px 16px; font-size: 13px; margin-right: 8px; white-space: nowrap;">➕ Thêm mới</button>
+                <button class="btn-secondary role-admin-only" onclick="budgetNavigate('import')" style="padding: 8px 16px; font-size: 13px; margin-right: 12px; white-space: nowrap; background: var(--bg-surface); border-color: var(--border);">📥 Nhập từ file</button>
+                <input type="text" placeholder="🔍 Tìm kiếm..." id="searchInput" class="search-input"/>
+                <select id="filterCategory" class="filter-select">
+                  <option value="">Tất cả nhóm</option>
+                  <option value="KP THƯỜNG XUYÊN">KP Thường Xuyên</option>
+                  <option value="KP KHÔNG THƯỜNG XUYÊN">KP Không Thường Xuyên</option>
+                </select>
+                <select id="filterStatus" class="filter-select">
+                  <option value="">Tất cả trạng thái</option>
+                  <option value="good">Bình thường</option>
+                  <option value="warning">Cảnh báo (&gt;80%)</option>
+                  <option value="danger">Vượt KP</option>
+                  <option value="zero">Chưa sử dụng</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="budget-table" id="budgetTable">
+                <thead>
+                  <tr>
+                    <th class="th-muc">Mục</th>
+                    <th class="th-tieumuc">T.Mục</th>
+                    <th class="th-noidung">Nội Dung</th>
+                    <th class="th-number col-dtcapnam">DT KP Cấp Đầu Năm</th>
+                    <th class="th-number col-tonnamtruoc">Tồn Năm Trước</th>
+                    <th class="th-number col-kpcapnam">KP Cấp Đầu Năm</th>
+                    <th class="th-number col-giamdt">Giảm DT</th>
+                    <th class="th-number col-tangdt">Tăng DT</th>
+                    <th class="th-number col-kpduocsd">KP Được SD</th>
+                    <th class="th-number col-kpdadung">KP Đã SD</th>
+                    <th class="th-number col-kpconlai">KP Còn Lại</th>
+                    <th class="th-status">Trạng thái</th>
+                    <th class="th-date">Ngày HH</th>
+                    <th class="th-action role-admin-only">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody id="budgetTableBody">
+                </tbody>
+              </table>
+            </div>
+            <div class="table-footer">
+              <div class="table-summary" id="tableSummary"></div>
+              <div class="pagination" id="pagination"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADD / EDIT PAGE -->
+        <div class="page" id="page-add">
+          <div class="card form-card">
+            <div class="card-header">
+              <h2 class="card-title" id="form-title">➕ Thêm Khoản Chi Ngân Sách</h2>
+            </div>
+            <form id="budgetForm" class="budget-form">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Năm ngân sách *</label>
+                  <select id="f-year" required>
+                    <option value="2020">2020</option>
+                    <option value="2021">2021</option>
+                    <option value="2022">2022</option>
+                    <option value="2023">2023</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Nhóm mục *</label>
+                  <select id="f-group" required>
+                    <option value="">-- Chọn nhóm --</option>
+                    <option value="KP THƯỜNG XUYÊN">KP Thường Xuyên</option>
+                    <option value="KP KHÔNG THƯỜNG XUYÊN">KP Không Thường Xuyên</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Mục</label>
+                  <input type="text" id="f-muc" placeholder="VD: 1, 2, 3..." maxlength="10" list="mucSuggestions"/>
+                  <datalist id="mucSuggestions"></datalist>
+                </div>
+                <div class="form-group">
+                  <label>Tiểu mục</label>
+                  <input type="text" id="f-tieumuc" placeholder="VD: 6001, 6101..." maxlength="10" list="tieumucSuggestions"/>
+                  <datalist id="tieumucSuggestions"></datalist>
+                </div>
+                <div class="form-group full-width">
+                  <label>Nội dung *</label>
+                  <input type="text" id="f-noidung" placeholder="Tên khoản chi tiêu..." required list="noidungSuggestions"/>
+                  <datalist id="noidungSuggestions"></datalist>
+                </div>
+                <div class="form-group">
+                  <label>DT KP Cấp Đầu Năm (triệu đồng)</label>
+                  <input type="number" id="f-dtcapnam" placeholder="0" min="0" step="1"/>
+                </div>
+                <div class="form-group">
+                  <label>Tồn Năm Trước Mang Sang</label>
+                  <input type="number" id="f-tonnuoctruoc" placeholder="0" min="0" step="1"/>
+                </div>
+                <div class="form-group">
+                  <label>KP Cấp Đầu Năm</label>
+                  <input type="number" id="f-kpcapnam" placeholder="0" min="0" step="1"/>
+                </div>
+                <div class="form-group">
+                  <label>Giảm Dự Toán</label>
+                  <input type="number" id="f-giam" placeholder="0" min="0" step="1"/>
+                </div>
+                <div class="form-group">
+                  <label>Tăng Dự Toán</label>
+                  <input type="number" id="f-tang" placeholder="0" min="0" step="1"/>
+                </div>
+                <div class="form-group">
+                  <label>KP Đã Sử Dụng</label>
+                  <input type="number" id="f-dadung" placeholder="0" min="0" step="1"/>
+                </div>
+                <div class="form-group">
+                  <label>Ngày Hết Hạn</label>
+                  <input type="date" id="f-handate"/>
+                </div>
+                <div class="form-group">
+                  <label>Ghi chú</label>
+                  <input type="text" id="f-note" placeholder="Ghi chú thêm..."/>
+                </div>
+              </div>
+              <!-- Auto-calculated -->
+              <div class="calc-preview">
+                <div class="calc-item">
+                  <span>KP Được Sử Dụng =</span>
+                  <strong id="calc-kpduocsd">0 đồng</strong>
+                </div>
+                <div class="calc-item">
+                  <span>KP Còn Lại =</span>
+                  <strong id="calc-kpconlai">0 đồng</strong>
+                </div>
+                <div class="calc-item">
+                  <span>Tỷ lệ sử dụng =</span>
+                  <strong id="calc-tyle">0%</strong>
+                </div>
+              </div>
+              <input type="hidden" id="f-editId"/>
+              <div class="form-actions">
+                <button type="submit" class="btn-primary" id="submitBtn">💾 Lưu Khoản Chi</button>
+                <button type="button" class="btn-secondary" id="cancelBtn">✖ Hủy</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- REPORT PAGE -->
+        <div class="page" id="page-report">
+          <div class="kpi-grid">
+            <div class="kpi-card kpi-blue">
+              <div class="kpi-icon">📊</div>
+              <div class="kpi-content">
+                <div class="kpi-label">KP Thường Xuyên - Đã SD</div>
+                <div class="kpi-value" id="rpt-tx-used">0</div>
+                <div class="kpi-sub" id="rpt-tx-pct">0%</div>
+              </div>
+            </div>
+            <div class="kpi-card kpi-green">
+              <div class="kpi-icon">📊</div>
+              <div class="kpi-content">
+                <div class="kpi-label">KP Không Thường Xuyên - Đã SD</div>
+                <div class="kpi-value" id="rpt-ktx-used">0</div>
+                <div class="kpi-sub" id="rpt-ktx-pct">0%</div>
+              </div>
+            </div>
+            <div class="kpi-card kpi-orange">
+              <div class="kpi-icon">🗓️</div>
+              <div class="kpi-content">
+                <div class="kpi-label">Số mục sắp hết hạn (30 ngày)</div>
+                <div class="kpi-value" id="rpt-expiring">0</div>
+                <div class="kpi-sub">khoản</div>
+              </div>
+            </div>
+            <div class="kpi-card kpi-red">
+              <div class="kpi-icon">🔴</div>
+              <div class="kpi-content">
+                <div class="kpi-label">Số mục vượt KP</div>
+                <div class="kpi-value" id="rpt-over">0</div>
+                <div class="kpi-sub">khoản</div>
+              </div>
+            </div>
+          </div>
+          <div class="two-col">
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">📊 Biểu đồ KP Thường Xuyên</h2>
+              </div>
+              <div id="chart-tx" class="chart-container"></div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">📊 Biểu đồ KP Không Thường Xuyên</h2>
+              </div>
+              <div id="chart-ktx" class="chart-container"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">📋 Bảng Tổng Hợp Theo Nhóm</h2>
+            </div>
+            <div id="report-table-container"></div>
+          </div>
+        </div>
+
+        <!-- IMPORT PAGE -->
+        <div class="page" id="page-import">
+          <div class="card form-card">
+            <div class="card-header">
+              <h2 class="card-title">📂 Nhập Dữ Liệu Từ Năm Trước</h2>
+            </div>
+            <div class="import-section">
+              <!-- Drag & Drop Zone -->
+              <div class="dropzone" id="dropZone">
+                <div class="dropzone-content">
+                  <div class="dropzone-icon">📂</div>
+                  <h3>Kéo & thả file vào đây</h3>
+                  <p>Hỗ trợ file <strong>.xlsx, .xls, .csv</strong></p>
+                  <span class="dropzone-or">— hoặc —</span>
+                  <div class="dropzone-buttons">
+                    <label class="btn-primary btn-upload btn-excel" for="importExcelFile">📊 Chọn File Excel</label>
+                    <input type="file" id="importExcelFile" accept=".xlsx,.xls" style="display:none"/>
+                    <label class="btn-secondary btn-upload" for="importFile">📁 Chọn File CSV</label>
+                    <input type="file" id="importFile" accept=".csv" style="display:none"/>
+                  </div>
+                </div>
+              </div>
+              <div class="import-controls">
+                <div class="import-year-row">
+                  <label>Năm dữ liệu nhập:</label>
+                  <select id="importYear">
+                    <option value="2020">2020</option>
+                    <option value="2021">2021</option>
+                    <option value="2022">2022</option>
+                    <option value="2023">2023</option>
+                    <option value="2024" selected>2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                  </select>
+                  <label>Nhóm mục:</label>
+                  <select id="importGroup">
+                    <option value="KP THƯỜNG XUYÊN">KP Thường Xuyên</option>
+                    <option value="KP KHÔNG THƯỜNG XUYÊN">KP Không Thường Xuyên</option>
+                  </select>
+                </div>
+                <div class="import-actions">
+                  <button class="btn-secondary" id="btnDownloadTemplate">📥 Tải Mẫu</button>
+                  <button class="btn-secondary" id="btnPasteData">📋 Nhập Trực Tiếp</button>
+                </div>
+                <!-- Sheet selector for Excel -->
+                <div id="sheetSelector" class="sheet-selector" style="display:none">
+                  <label>Chọn Sheet:</label>
+                  <select id="sheetSelect"></select>
+                  <label>Dòng bắt đầu dữ liệu:</label>
+                  <input type="number" id="startRow" value="1" min="1" max="100" style="width:60px"/>
+                  <button class="btn-primary" id="btnParseSheet" style="padding:8px 16px;font-size:13px">🔍 Đọc Sheet</button>
+                </div>
+                <!-- Column mapping -->
+                <div id="columnMapping" class="column-mapping" style="display:none"></div>
+              </div>
+              <div id="importPreview" class="import-preview"></div>
+              <div id="importConfirm" class="import-confirm" style="display:none">
+                <button class="btn-primary" id="btnConfirmImport">✅ Xác Nhận Nhập Dữ Liệu</button>
+                <button class="btn-secondary" id="btnCancelImport">✖ Hủy</button>
+              </div>
+              <!-- Paste modal -->
+              <div id="pasteArea" class="paste-area" style="display:none">
+                <h4>Dán dữ liệu trực tiếp (mỗi dòng 1 khoản, phân cách bằng dấu phẩy hoặc tab):</h4>
+                <textarea id="pasteTextarea" rows="10" placeholder="Mục, Tiểu Mục, Nội Dung, DT KP Cấp Đầu Năm, Tồn Năm Trước, KP Cấp Đầu Năm, Giảm DT, Tăng DT, KP Đã SD, Ngày HH"></textarea>
+                <div class="form-actions">
+                  <button class="btn-primary" id="btnParsePaste">🔍 Phân Tích Dữ Liệu</button>
+                </div>
+              </div>
+              <!-- History -->
+              <div class="card" style="margin-top:20px">
+                <div class="card-header">
+                  <h2 class="card-title">📅 Dữ Liệu Các Năm Đã Lưu</h2>
+                </div>
+                <div id="yearHistory"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end page-container -->
+    </main>
+  </div>
+  </div><!-- end main-app -->
+
+  <!-- Modal Edit -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-title">Chỉnh sửa khoản chi</h3>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+  <!-- Modal Confirm -->
+  <div class="modal" id="confirmModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center">
+    <div style="background:var(--card-bg);padding:24px;border-radius:12px;width:320px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.5)">
+      <h3 style="margin-top:0;margin-bottom:12px;color:var(--text-color);font-size:18px">⚠️ Xác nhận</h3>
+      <p id="confirmMsg" style="margin-bottom:24px;color:var(--text-muted);font-size:14px">Bạn có chắc chắn muốn xóa?</p>
+      <div style="display:flex;gap:12px;justify-content:center">
+        <button id="confirmYesBtn" style="padding:8px 24px;background:var(--danger-color);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold">Xóa</button>
+        <button id="confirmNoBtn" style="padding:8px 24px;background:var(--bg-color);color:var(--text-color);border:1px solid var(--border-color);border-radius:6px;cursor:pointer;font-weight:bold">Hủy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="xlsx.full.min.js"></script>
+  <script src="jspdf.umd.min.js"></script>
+  <script src="jspdf.plugin.autotable.min.js"></script>
+  <script src="times_font.js"></script>
+  <script>
+    // EMERGENCY FALLBACK LOGIN LOGIC
+    window.checkAuth = function() {
+      try {
+        const role = localStorage.getItem('budget_user_role');
+        const loginScreen = document.getElementById('login-screen');
+        const mainApp = document.getElementById('main-app');
+        if (!loginScreen || !mainApp) return;
+        if (role) {
+          loginScreen.style.display = 'none';
+          mainApp.style.display = 'block';
+          document.body.classList.toggle('role-user', role !== 'admin');
+          const roleText = document.getElementById('currentUserRole');
+          if (roleText) roleText.textContent = role === 'admin' ? 'Quản trị viên' : 'Thành viên';
+          return true;
+        }
+        loginScreen.style.display = 'flex';
+        mainApp.style.display = 'none';
+        return false;
+      } catch(e) { console.error(e); }
+    };
+    window.handleLogin = async function() {
+      const u = document.getElementById('login-username').value.trim().toLowerCase();
+      const p = document.getElementById('login-password').value.trim();
+      const btn = document.getElementById('main-budget-login-btn');
+      const err = document.getElementById('login-error');
+      if (btn) { btn.disabled = true; btn.innerText = 'Đang xử lý...'; }
+      await new Promise(r => setTimeout(r, 500));
+      if ((u === 'admin' && p === 'Minhtien@1986') || (u === 'user' && p === 'user')) {
+        localStorage.setItem('budget_user_role', u === 'admin' ? 'admin' : 'user');
+        if (err) err.style.display = 'none';
+        window.checkAuth();
+        if (window.budgetNavigate) window.budgetNavigate('dashboard');
+        if (window.toast) window.toast('Đăng nhập thành công', 'success');
+        else alert('Đăng nhập thành công!');
+      } else {
+        if (err) err.style.display = 'block';
+        if (btn) { btn.disabled = false; btn.innerText = 'Đăng Nhập'; }
+      }
+    };
+    // Auto-check on load
+    document.addEventListener('DOMContentLoaded', () => {
+      window.checkAuth();
+      const p = document.getElementById('login-password');
+      if(p) p.addEventListener('keypress', e => { if(e.key==='Enter') window.handleLogin(); });
+    });
+  </script>
+  <script>
+    // Core Navigation
+    window.budgetNavigate = function(page, filter) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      const pg = document.getElementById('page-' + page);
+      if (pg) pg.classList.add('active');
+      
+      const navId = page === 'budget' ? `nav-budget-${filter||'all'}` : `nav-${page}`;
+      const nav = document.getElementById(navId);
+      if (nav) nav.classList.add('active');
+      
+      if (page === 'dashboard' && window.renderDashboard) window.renderDashboard();
+      if (page === 'budget' && window.renderTable) window.renderTable();
+    };
+  </script>
+  <script src="app.js?v=9"></script>
+</body>
+</html>
