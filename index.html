@@ -535,11 +535,22 @@
   <!-- Toast -->
   <div class="toast-container" id="toastContainer"></div>
 
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="xlsx.full.min.js"></script>
-  <script src="jspdf.umd.min.js"></script>
-  <script src="jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   <script src="times_font.js"></script>
+
+  <!-- Orientation Overlay -->
+  <div id="orientation-warning" class="orientation-overlay">
+    <div class="orientation-content">
+      <div class="orientation-icon">🔄</div>
+      <h3>Vui lòng quay ngang màn hình</h3>
+      <p>Để xem bảng ngân sách rõ ràng và đầy đủ nhất, bạn hãy xoay ngang điện thoại hoặc máy tính bảng của mình.</p>
+      <button class="btn-primary" onclick="this.parentElement.parentElement.style.display='none'" style="margin-top:15px; background:rgba(255,255,255,0.1)">Bỏ qua</button>
+    </div>
+  </div>
   <script>
     // EMERGENCY FALLBACK LOGIN LOGIC
     window.checkAuth = function() {
