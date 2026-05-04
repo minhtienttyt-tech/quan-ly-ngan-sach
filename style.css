@@ -935,7 +935,7 @@ body.role-user .role-admin-only { display: none !important; }
   color: #fff;
 }
 
-@media screen and (max-width: 992px) and (orientation: portrait) {
+@media screen and (max-width: 1200px) and (orientation: portrait) {
   .orientation-overlay { display: flex; }
 }
 

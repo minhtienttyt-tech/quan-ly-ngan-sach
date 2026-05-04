@@ -906,14 +906,13 @@ function exportPDF(){
       body:rows.map(r => r.data),
       startY:50,
       theme:'grid',
-      margin: { left: 10, right: 10 },
-      styles:{fontSize:6.5,cellPadding:1.2,overflow:'linebreak',font:fontName},
-      headStyles:{fillColor:[30,58,138],textColor:255,fontSize:6.5,fontStyle:'bold',halign:'center',font:fontName},
+      margin: { left: 8, right: 8, top: 50 },
+      tableWidth: 'auto',
+      styles:{fontSize:6,cellPadding:1,overflow:'linebreak',font:fontName},
+      headStyles:{fillColor:[30,58,138],textColor:255,fontSize:6,fontStyle:'bold',halign:'center',font:fontName},
       columnStyles:{
-        0:{cellWidth:8,halign:'center'},1:{cellWidth:10,halign:'center'},2:{cellWidth:40},
-        3:{cellWidth:20,halign:'right'},4:{cellWidth:18,halign:'right'},5:{cellWidth:18,halign:'right'},
-        6:{cellWidth:16,halign:'right'},7:{cellWidth:16,halign:'right'},8:{cellWidth:20,halign:'right'},
-        9:{cellWidth:20,halign:'right'},10:{cellWidth:20,halign:'right'},11:{cellWidth:16,halign:'center'}
+        2:{cellWidth: 'auto', minCellWidth: 30}, // Nội dung co giãn
+        11:{halign:'center'}
       },
       alternateRowStyles:{fillColor:[240,245,255]},
       didParseCell:function(data){
