@@ -853,12 +853,13 @@ body.role-user .role-admin-only { display: none !important; }
   .budget-table .col-kpcapnam,
   .budget-table .col-giamdt,
   .budget-table .col-tangdt,
+  .budget-table .col-giulai10,
   .budget-table .col-kpduocsd,
   .budget-table .col-kpconlai,
   .budget-table .th-date,
   .budget-table .th-status,
-  .budget-table td:nth-child(12),  /* date col */
-  .budget-table td:nth-child(11) { display: none; }
+  .budget-table td:nth-child(13),  /* date col shifted */
+  .budget-table td:nth-child(12) { display: none; }
 
   .th-noidung { min-width: 140px; }
   .th-number { width: 80px; }

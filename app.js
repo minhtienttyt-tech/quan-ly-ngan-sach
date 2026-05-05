@@ -3,7 +3,7 @@
 // ===== DATA =====
 const fmt=n=>n==null||n===''?'':Number(n).toLocaleString('vi-VN');
 const fmtM=n=>n==null||n===''?'':Number(n).toLocaleString('vi-VN');
-function calcKpDuocSD(r){return(+r.dtCapNam||0)+(+r.tonNamTruoc||0)-(+r.giamDT||0)+(+r.tangDT||0);}
+function calcKpDuocSD(r){return(+r.dtCapNam||0)+(+r.tonNamTruoc||0)+(+r.kpCapNam||0)-(+r.giamDT||0)+(+r.tangDT||0)-(+r.giuLai10||0);}
 function calcConLai(r){return calcKpDuocSD(r)-(+r.daDung||0);}
 function getStatus(r){
   const total=calcKpDuocSD(r);
@@ -357,6 +357,7 @@ function renderTable(){
           <td class="td-number col-kpcapnam">${r.kpCapNam ? fmt(r.kpCapNam) : '-'}</td>
           <td class="td-number col-giamdt">${r.giamDT ? fmt(r.giamDT) : '-'}</td>
           <td class="td-number col-tangdt">${r.tangDT ? fmt(r.tangDT) : '-'}</td>
+          <td class="td-number col-giulai10">${r.giuLai10 ? fmt(r.giuLai10) : '-'}</td>
           <td class="td-number highlight col-kpduocsd">${kpDuoc ? fmt(kpDuoc) : '-'}</td>
           <td class="td-number used col-kpdadung">${r.daDung ? fmt(r.daDung) : '-'}</td>
           <td class="td-number remaining ${conLaiCls} col-kpconlai">${fmt(conLai)}</td>
@@ -379,6 +380,7 @@ function renderTable(){
           <td class="td-number col-kpcapnam" style="font-size: 11px; color: var(--text-muted)">${fmt(subItems.reduce((s,r)=>s+(+r.kpCapNam||0),0))}</td>
           <td class="td-number col-giamdt" style="font-size: 11px; color: var(--text-muted)">${fmt(subItems.reduce((s,r)=>s+(+r.giamDT||0),0))}</td>
           <td class="td-number col-tangdt" style="font-size: 11px; color: var(--text-muted)">${fmt(subItems.reduce((s,r)=>s+(+r.tangDT||0),0))}</td>
+          <td class="td-number col-giulai10" style="font-size: 11px; color: var(--text-muted)">${fmt(subItems.reduce((s,r)=>s+(+r.giuLai10||0),0))}</td>
           <td class="td-number col-kpduocsd" style="font-weight: 600; font-size: 12px">${fmt(subAlloc)}</td>
           <td class="td-number col-kpdadung" style="font-weight: 600; font-size: 12px; color: var(--green)">${fmt(subUsed)}</td>
           <td class="td-number col-kpconlai" style="font-weight: 600; font-size: 12px; color: ${subRemain < 0 ? 'var(--red)' : 'var(--text-primary)'}">${fmt(subRemain)}</td>
@@ -399,6 +401,7 @@ function renderTable(){
       <td class="td-number col-kpcapnam">${fmt(groupItems.reduce((s,r)=>s+(+r.kpCapNam||0),0))}</td>
       <td class="td-number col-giamdt">${fmt(groupItems.reduce((s,r)=>s+(+r.giamDT||0),0))}</td>
       <td class="td-number col-tangdt">${fmt(groupItems.reduce((s,r)=>s+(+r.tangDT||0),0))}</td>
+      <td class="td-number col-giulai10">${fmt(groupItems.reduce((s,r)=>s+(+r.giuLai10||0),0))}</td>
       <td class="td-number highlight col-kpduocsd">${fmt(groupAlloc)}</td>
       <td class="td-number used col-kpdadung">${fmt(groupUsed)}</td>
       <td class="td-number remaining ${groupRemain < 0 ? 'danger' : 'ok'} col-kpconlai">${fmt(groupRemain)}</td>
@@ -418,6 +421,7 @@ function renderTable(){
     <td class="td-number col-kpcapnam">${fmt(data.reduce((s,r)=>s+(+r.kpCapNam||0),0))}</td>
     <td class="td-number col-giamdt">${fmt(data.reduce((s,r)=>s+(+r.giamDT||0),0))}</td>
     <td class="td-number col-tangdt">${fmt(data.reduce((s,r)=>s+(+r.tangDT||0),0))}</td>
+    <td class="td-number col-giulai10">${fmt(data.reduce((s,r)=>s+(+r.giuLai10||0),0))}</td>
     <td class="td-number highlight col-kpduocsd">${fmt(globalAlloc)}</td>
     <td class="td-number used col-kpdadung">${fmt(globalUsed)}</td>
     <td class="td-number remaining ${globalRemain < 0 ? 'danger' : 'ok'} col-kpconlai">${fmt(globalRemain)}</td>
@@ -524,6 +528,7 @@ function startEdit(id){
   document.getElementById('f-kpcapnam').value=r.kpCapNam||'';
   document.getElementById('f-giam').value=r.giamDT||'';
   document.getElementById('f-tang').value=r.tangDT||'';
+  document.getElementById('f-giulai10').value=r.giuLai10||'';
   document.getElementById('f-dadung').value=r.daDung||'';
   document.getElementById('f-handate').value=r.hanDate?r.hanDate.split('/').reverse().join('-'):'';
   document.getElementById('f-note').value=r.note||'';
@@ -569,10 +574,12 @@ function deleteItem(id){
 function updateCalc(){
   const dt=+document.getElementById('f-dtcapnam').value||0;
   const ton=+document.getElementById('f-tonnuoctruoc').value||0;
+  const kp=+document.getElementById('f-kpcapnam').value||0;
   const giam=+document.getElementById('f-giam').value||0;
   const tang=+document.getElementById('f-tang').value||0;
+  const giulai=+document.getElementById('f-giulai10').value||0;
   const da=+document.getElementById('f-dadung').value||0;
-  const duoc=dt+ton-giam+tang;
+  const duoc=dt+ton+kp-giam+tang-giulai;
   const con=duoc-da;
   const pct=duoc>0?da/duoc*100:0;
   document.getElementById('calc-kpduocsd').textContent=fmt(duoc)+' đồng';
@@ -626,8 +633,8 @@ async function downloadBlob(blob, filename) {
 
 function exportCSV(){
   const data=items.filter(x=>!x.isGroupHeader);
-  const headers=['Mục','T.Mục','Nội dung','DT KP Cấp Đầu Năm','Tồn Năm Trước','KP Cấp Đầu Năm','Giảm DT','Tăng DT','KP Được SD','KP Đã SD','KP Còn Lại','Trạng thái','Ngày HH'];
-  const rows=data.map(r=>[r.muc,r.tieumuc,`"${r.noidung}"`,r.dtCapNam||0,r.tonNamTruoc||0,r.kpCapNam||0,r.giamDT||0,r.tangDT||0,calcKpDuocSD(r),r.daDung||0,calcConLai(r),getStatus(r),r.hanDate||'']);
+  const headers=['Mục','T.Mục','Nội dung','DT KP Cấp Đầu Năm','Tồn Năm Trước','KP Cấp Đầu Năm','Giảm DT','Tăng DT','Giữ lại 10% CCTL','KP Được SD','KP Đã SD','KP Còn Lại','Trạng thái','Ngày HH'];
+  const rows=data.map(r=>[r.muc,r.tieumuc,`"${r.noidung}"`,r.dtCapNam||0,r.tonNamTruoc||0,r.kpCapNam||0,r.giamDT||0,r.tangDT||0,r.giuLai10||0,calcKpDuocSD(r),r.daDung||0,calcConLai(r),getStatus(r),r.hanDate||'']);
   const csvHeader = [
     'SỞ Y TẾ TỈNH LAI CHÂU',
     'BỆNH VIỆN ĐA KHOA THAN UYÊN',
@@ -649,6 +656,7 @@ function exportXlsx(){
     const dataOnly = items.filter(x => !x.isGroupHeader);
     const groups = ['KP THƯỜNG XUYÊN', 'KP KHÔNG THƯỜNG XUYÊN'];
     
+    const headers=['Mục','T.Mục','Nội dung','DT KP Cấp Đầu Năm','Tồn Năm Trước','KP Cấp Đầu Năm','Giảm DT','Tăng DT','Giữ lại 10% CCTL','KP Được SD','KP Đã SD','KP Còn Lại','Tỷ lệ (%)','Trạng thái','Ngày HH'];
     let rows = [];
     let globalAlloc = 0, globalUsed = 0;
 
@@ -685,7 +693,7 @@ function exportXlsx(){
           subAlloc += kpDuoc;
           subUsed += (+r.daDung || 0);
 
-          rows.push([r.muc || '', r.tieumuc || '', r.noidung || '', r.dtCapNam || 0, r.tonNamTruoc || 0, r.kpCapNam || 0, r.giamDT || 0, r.tangDT || 0, kpDuoc, +r.daDung || 0, conLai, Math.round(pct * 10) / 10, stTxt, r.hanDate || '']);
+          rows.push([r.muc || '', r.tieumuc || '', r.noidung || '', r.dtCapNam || 0, r.tonNamTruoc || 0, r.kpCapNam || 0, r.giamDT || 0, r.tangDT || 0, r.giuLai10 || 0, kpDuoc, +r.daDung || 0, conLai, Math.round(pct * 10) / 10, stTxt, r.hanDate || '']);
         });
 
         // Content Subtotal
@@ -698,6 +706,7 @@ function exportXlsx(){
             subItems.reduce((s,r)=>s+(+r.kpCapNam||0),0), 
             subItems.reduce((s,r)=>s+(+r.giamDT||0),0), 
             subItems.reduce((s,r)=>s+(+r.tangDT||0),0), 
+            subItems.reduce((s,r)=>s+(+r.giuLai10||0),0), 
             subAlloc, subUsed, subRemain, Math.round(subPct * 10) / 10, '', '']);
         }
         groupAlloc += subAlloc;
@@ -713,6 +722,7 @@ function exportXlsx(){
         groupItems.reduce((s,r)=>s+(+r.kpCapNam||0),0), 
         groupItems.reduce((s,r)=>s+(+r.giamDT||0),0), 
         groupItems.reduce((s,r)=>s+(+r.tangDT||0),0), 
+        groupItems.reduce((s,r)=>s+(+r.giuLai10||0),0), 
         groupAlloc, groupUsed, groupRemain, Math.round(groupPct * 10) / 10, '', '']);
       
       // Add a spacer row
@@ -731,6 +741,7 @@ function exportXlsx(){
       dataOnly.reduce((s,r)=>s+(+r.kpCapNam||0),0), 
       dataOnly.reduce((s,r)=>s+(+r.giamDT||0),0), 
       dataOnly.reduce((s,r)=>s+(+r.tangDT||0),0), 
+      dataOnly.reduce((s,r)=>s+(+r.giuLai10||0),0), 
       globalAlloc, globalUsed, globalRemain, Math.round(globalPct * 10) / 10, '', '']);
 
     const ta = globalAlloc;
@@ -750,7 +761,7 @@ function exportXlsx(){
     // Column widths
     ws['!cols']=[
       {wch:8},{wch:10},{wch:40},{wch:18},{wch:16},{wch:16},
-      {wch:14},{wch:14},{wch:18},{wch:18},{wch:18},{wch:10},{wch:14},{wch:12}
+      {wch:14},{wch:14},{wch:16},{wch:18},{wch:18},{wch:18},{wch:10},{wch:14},{wch:12}
     ];
     // Create workbook
     const wb=XLSX.utils.book_new();
@@ -818,7 +829,7 @@ function exportPDF(){
     // Table data construction with grouping
     const dataOnly=items.filter(x=>!x.isGroupHeader);
     const groups=['KP THƯỜNG XUYÊN','KP KHÔNG THƯỜNG XUYÊN'];
-    const headers=[['Mục','T.Mục','Nội Dung','DT KP Cấp','Tồn Năm Trước','KP Cấp ĐN','Giảm DT','Tăng DT','KP Được SD','KP Đã SD','KP Còn Lại','Trạng thái']];
+    const headers=[['Mục','T.Mục','Nội Dung','DT KP Cấp','Tồn Năm Trước','KP Cấp ĐN','Giảm DT','Tăng DT','Giữ 10%','KP Được SD','KP Đã SD','KP Còn Lại','Trạng thái']];
     
     let rows=[];
     let globalAlloc = 0, globalUsed = 0;
@@ -830,7 +841,7 @@ function exportPDF(){
       // Group Header Row
       rows.push({
         type: 'groupHeader',
-        data: [`${gIdx + 1}. ${g}`, '', '', '', '', '', '', '', '', '', '', '']
+        data: [`${gIdx + 1}. ${g}`, '', '', '', '', '', '', '', '', '', '', '', '']
       });
 
       let groupAlloc = 0, groupUsed = 0;
@@ -860,7 +871,7 @@ function exportPDF(){
 
           rows.push({
             type: 'item',
-            data: [r.muc||'', r.tieumuc||'', r.noidung||'', fmt(r.dtCapNam||0), fmt(r.tonNamTruoc||0), fmt(r.kpCapNam||0), fmt(r.giamDT||0), fmt(r.tangDT||0), fmt(kpDuoc), fmt(r.daDung||0), fmt(conLai), stTxt]
+            data: [r.muc||'', r.tieumuc||'', r.noidung||'', fmt(r.dtCapNam||0), fmt(r.tonNamTruoc||0), fmt(r.kpCapNam||0), fmt(r.giamDT||0), fmt(r.tangDT||0), fmt(r.giuLai10||0), fmt(kpDuoc), fmt(r.daDung||0), fmt(conLai), stTxt]
           });
         });
 
@@ -869,7 +880,7 @@ function exportPDF(){
           const subRemain = subAlloc - subUsed;
           rows.push({
             type: 'contentTotal',
-            data: ['', '', `Tổng: ${contentName}`, fmt(subItems.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(subAlloc), fmt(subUsed), fmt(subRemain), '']
+            data: ['', '', `Tổng: ${contentName}`, fmt(subItems.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.giuLai10||0),0)), fmt(subAlloc), fmt(subUsed), fmt(subRemain), '']
           });
         }
         groupAlloc += subAlloc;
@@ -880,7 +891,7 @@ function exportPDF(){
       const groupRemain = groupAlloc - groupUsed;
       rows.push({
         type: 'groupTotal',
-        data: ['', '', `CỘNG ${g}`, fmt(groupItems.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(groupAlloc), fmt(groupUsed), fmt(groupRemain), '']
+        data: ['', '', `CỘNG ${g}`, fmt(groupItems.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.giuLai10||0),0)), fmt(groupAlloc), fmt(groupUsed), fmt(groupRemain), '']
       });
 
       globalAlloc += groupAlloc;
@@ -888,7 +899,7 @@ function exportPDF(){
       // Spacer row for PDF clarity
       rows.push({
         type: 'spacer',
-        data: ['', '', '', '', '', '', '', '', '', '', '', '']
+        data: ['', '', '', '', '', '', '', '', '', '', '', '', '']
       });
     });
 
@@ -896,7 +907,7 @@ function exportPDF(){
     const globalRemain = globalAlloc - globalUsed;
     rows.push({
       type: 'grandTotal',
-      data: ['', '', 'TỔNG CỘNG (I + II)', fmt(dataOnly.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(globalAlloc), fmt(globalUsed), fmt(globalRemain), '']
+      data: ['', '', 'TỔNG CỘNG (I + II)', fmt(dataOnly.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.giuLai10||0),0)), fmt(globalAlloc), fmt(globalUsed), fmt(globalRemain), '']
     });
 
     console.log('PDF: Generating rows...', rows.length);
@@ -923,7 +934,7 @@ function exportPDF(){
           data.cell.styles.fillColor=[30, 58, 138];
           data.cell.styles.textColor=[255, 255, 255];
           data.cell.styles.fontSize=9;
-          data.cell.colSpan = 12; // Gộp toàn bộ 12 cột
+          data.cell.colSpan = 13; // Gộp toàn bộ 13 cột
           data.cell.styles.halign = 'left';
         }
         if(rowType === 'contentTotal'){
@@ -941,12 +952,12 @@ function exportPDF(){
         }
 
         // Negative numbers in red for specific columns
-        if(data.column.index===10 && data.section==='body'){
+        if(data.column.index===11 && data.section==='body'){
           const val=data.cell.raw||'';
           if(val.toString().startsWith('-')) data.cell.styles.textColor=[220,38,38];
         }
         // Status colors
-        if(data.column.index===11 && data.section==='body' && rowType === 'item'){
+        if(data.column.index===12 && data.section==='body' && rowType === 'item'){
           const v=data.cell.raw;
           if(v==='Vượt KP') data.cell.styles.textColor=[220,38,38];
           else if(v==='Cảnh báo') data.cell.styles.textColor=[217,119,6];
@@ -1641,6 +1652,7 @@ async function initApp() {
           kpCapNam: +document.getElementById('f-kpcapnam').value || 0,
           giamDT: +document.getElementById('f-giam').value || 0,
           tangDT: +document.getElementById('f-tang').value || 0,
+          giuLai10: +document.getElementById('f-giulai10').value || 0,
           daDung: +document.getElementById('f-dadung').value || 0,
           hanDate: hanFormatted,
           note: document.getElementById('f-note').value,
