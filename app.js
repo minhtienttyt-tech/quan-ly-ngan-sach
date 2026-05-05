@@ -348,6 +348,7 @@ function renderTable(){
         subAlloc += kpDuoc;
         subUsed += (+r.daDung || 0);
 
+        const isDetail = !!(r.muc || r.tieumuc);
         html += `<tr class="${r.dtCapNam > 0 ? 'row-parent-content' : ''}">
           <td class="td-muc">${r.muc || ''}</td>
           <td class="td-tieumuc">${r.tieumuc || ''}</td>
@@ -360,8 +361,8 @@ function renderTable(){
           <td class="td-number col-giulai10">${r.giuLai10 ? fmt(r.giuLai10) : '-'}</td>
           <td class="td-number highlight col-kpduocsd">${kpDuoc ? fmt(kpDuoc) : '-'}</td>
           <td class="td-number used col-kpdadung">${r.daDung ? fmt(r.daDung) : '-'}</td>
-          <td class="td-number remaining ${conLaiCls} col-kpconlai">${fmt(conLai)}</td>
-          <td style="text-align:center">${statusBadge(r)}</td>
+          <td class="td-number remaining ${conLaiCls} col-kpconlai">${isDetail ? '-' : fmt(conLai)}</td>
+          <td style="text-align:center">${isDetail ? '-' : statusBadge(r)}</td>
           <td style="text-align:center;font-size:11px;color:var(--text-muted)">${r.hanDate || '-'}</td>
           <td style="text-align:center" class="role-admin-only">
             <button class="btn-edit" onclick="startEdit(${r.id})">✏️</button>
@@ -693,7 +694,8 @@ function exportXlsx(){
           subAlloc += kpDuoc;
           subUsed += (+r.daDung || 0);
 
-          rows.push([r.muc || '', r.tieumuc || '', r.noidung || '', r.dtCapNam || 0, r.tonNamTruoc || 0, r.kpCapNam || 0, r.giamDT || 0, r.tangDT || 0, r.giuLai10 || 0, kpDuoc, +r.daDung || 0, conLai, Math.round(pct * 10) / 10, stTxt, r.hanDate || '']);
+          const isDetail = !!(r.muc || r.tieumuc);
+          rows.push([r.muc || '', r.tieumuc || '', r.noidung || '', r.dtCapNam || 0, r.tonNamTruoc || 0, r.kpCapNam || 0, r.giamDT || 0, r.tangDT || 0, r.giuLai10 || 0, kpDuoc, +r.daDung || 0, isDetail ? '' : conLai, isDetail ? '' : Math.round(pct * 10) / 10, isDetail ? '' : stTxt, r.hanDate || '']);
         });
 
         // Content Subtotal
@@ -869,9 +871,10 @@ function exportPDF(){
           subAlloc += kpDuoc;
           subUsed += (+r.daDung || 0);
 
+          const isDetail = !!(r.muc || r.tieumuc);
           rows.push({
             type: 'item',
-            data: [r.muc||'', r.tieumuc||'', r.noidung||'', fmt(r.dtCapNam||0), fmt(r.tonNamTruoc||0), fmt(r.kpCapNam||0), fmt(r.giamDT||0), fmt(r.tangDT||0), fmt(r.giuLai10||0), fmt(kpDuoc), fmt(r.daDung||0), fmt(conLai), stTxt]
+            data: [r.muc||'', r.tieumuc||'', r.noidung||'', fmt(r.dtCapNam||0), fmt(r.tonNamTruoc||0), fmt(r.kpCapNam||0), fmt(r.giamDT||0), fmt(r.tangDT||0), fmt(r.giuLai10||0), fmt(kpDuoc), fmt(r.daDung||0), isDetail ? '-' : fmt(conLai), isDetail ? '-' : stTxt]
           });
         });
 
