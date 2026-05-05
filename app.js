@@ -343,12 +343,9 @@ function renderTable(){
       subItems.forEach(r => {
         const kpDuoc = calcKpDuocSD(r);
         const conLai = calcConLai(r);
-        const conLaiCls = conLai < 0 ? 'negative' : (conLai === 0 ? '' : 'ok');
-        
-        subAlloc += kpDuoc;
-        subUsed += (+r.daDung || 0);
-
         const isDetail = !!(r.muc || r.tieumuc);
+        const conLaiCls = isDetail ? '' : (conLai < 0 ? 'negative' : (conLai === 0 ? '' : 'ok'));
+        
         html += `<tr class="${r.dtCapNam > 0 ? 'row-parent-content' : ''}">
           <td class="td-muc">${r.muc || ''}</td>
           <td class="td-tieumuc">${r.tieumuc || ''}</td>
@@ -590,46 +587,17 @@ function updateCalc(){
 
 // ===== EXPORT =====
 async function downloadBlob(blob, filename) {
-  // Modern File System Access API (Bypasses WebView blob interception)
-  if (window.showSaveFilePicker) {
-    try {
-      const ext = filename.split('.').pop();
-      const types = [];
-      if (ext === 'csv') types.push({ description: 'CSV File', accept: { 'text/csv': ['.csv'] } });
-      else if (ext === 'xlsx') types.push({ description: 'Excel File', accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] } });
-      else if (ext === 'pdf') types.push({ description: 'PDF File', accept: { 'application/pdf': ['.pdf'] } });
-      
-      const handle = await window.showSaveFilePicker({
-        suggestedName: filename,
-        types: types
-      });
-      const writable = await handle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-      return;
-    } catch (err) {
-      if (err.name === 'AbortError') return; // User cancelled
-      console.error('FilePicker fallback:', err);
-    }
-  }
-
-  // Fallback 1: IE/Edge
-  if (window.navigator && window.navigator.msSaveOrOpenBlob) return window.navigator.msSaveOrOpenBlob(blob, filename);
-  
-  // Fallback 2: Blob URL (For older browsers or unsupported contexts)
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.style.display = 'none';
   a.href = url;
   a.download = filename;
   document.body.appendChild(a);
-  requestAnimationFrame(() => {
-    a.click();
-    setTimeout(() => { 
-      document.body.removeChild(a); 
-      window.URL.revokeObjectURL(url); 
-    }, 10000);
-  });
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }, 100);
 }
 
 function exportCSV(){
@@ -883,7 +851,7 @@ function exportPDF(){
           const subRemain = subAlloc - subUsed;
           rows.push({
             type: 'contentTotal',
-            data: ['', '', `Tổng: ${contentName}`, fmt(subItems.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.giuLai10||0),0)), fmt(subAlloc), fmt(subUsed), fmt(subRemain), '']
+            data: [`Tổng: ${contentName}`, '', '', fmt(subItems.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.giuLai10||0),0)), fmt(subAlloc), fmt(subUsed), fmt(subRemain), '']
           });
         }
         groupAlloc += subAlloc;
@@ -894,7 +862,7 @@ function exportPDF(){
       const groupRemain = groupAlloc - groupUsed;
       rows.push({
         type: 'groupTotal',
-        data: ['', '', `CỘNG ${g}`, fmt(groupItems.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.giuLai10||0),0)), fmt(groupAlloc), fmt(groupUsed), fmt(groupRemain), '']
+        data: [`CỘNG ${g}`, '', '', fmt(groupItems.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.giuLai10||0),0)), fmt(groupAlloc), fmt(groupUsed), fmt(groupRemain), '']
       });
 
       globalAlloc += groupAlloc;
@@ -910,71 +878,106 @@ function exportPDF(){
     const globalRemain = globalAlloc - globalUsed;
     rows.push({
       type: 'grandTotal',
-      data: ['', '', 'TỔNG CỘNG (I + II)', fmt(dataOnly.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.giuLai10||0),0)), fmt(globalAlloc), fmt(globalUsed), fmt(globalRemain), '']
+      data: ['TỔNG CỘNG (I + II)', '', '', fmt(dataOnly.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.giuLai10||0),0)), fmt(globalAlloc), fmt(globalUsed), fmt(globalRemain), '']
     });
 
     console.log('PDF: Generating rows...', rows.length);
 
     doc.autoTable({
-      head:headers,
-      body:rows.map(r => r.data),
-      startY:50,
-      theme:'grid',
-      margin: { left: 8, right: 8, top: 50 },
+      head: [['Mục', 'T.Mục', 'Nội Dung', 'DT Cấp', 'Tồn Năm Tr.', 'KP Cấp ĐN', 'Giảm DT', 'Tăng DT', 'Giữ 10%', 'Được SD', 'Đã SD', 'Còn Lại', 'Trạng thái']],
+      body: rows.map(r => r.data),
+      startY: 50,
+      theme: 'grid',
+      margin: { left: 7, right: 7, top: 55, bottom: 15 },
       tableWidth: 'auto',
-      styles:{fontSize:6,cellPadding:1,overflow:'linebreak',font:fontName},
-      headStyles:{fillColor:[30,58,138],textColor:255,fontSize:6,fontStyle:'bold',halign:'center',font:fontName},
-      columnStyles:{
-        2:{cellWidth: 'auto', minCellWidth: 30}, // Nội dung co giãn
-        11:{halign:'center'}
+      styles: { fontSize: 6.2, cellPadding: 1.8, overflow: 'linebreak', font: fontName, lineColor: [200, 200, 200], lineWidth: 0.1 },
+      headStyles: { fillColor: [30, 58, 138], textColor: [255, 255, 255], fontSize: 6.5, fontStyle: 'bold', halign: 'center' },
+      columnStyles: {
+        0: { cellWidth: 10, halign: 'center' },
+        1: { cellWidth: 12, halign: 'center' },
+        2: { cellWidth: 'auto', minCellWidth: 40 },
+        3: { cellWidth: 18, halign: 'right' },
+        4: { cellWidth: 18, halign: 'right' },
+        5: { cellWidth: 18, halign: 'right' },
+        6: { cellWidth: 16, halign: 'right' },
+        7: { cellWidth: 16, halign: 'right' },
+        8: { cellWidth: 16, halign: 'right' },
+        9: { cellWidth: 20, halign: 'right' },
+        10: { cellWidth: 20, halign: 'right' },
+        11: { cellWidth: 20, halign: 'right' },
+        12: { cellWidth: 15, halign: 'center' }
       },
-      alternateRowStyles:{fillColor:[240,245,255]},
-      didParseCell:function(data){
-        const rowType = rows[data.row.index].type;
+      alternateRowStyles: { fillColor: [248, 250, 255] },
+      didDrawPage: function(data) {
+        // Page Title on every page
+        doc.setFontSize(10);
+        doc.setFont(fontName, 'bold');
+        doc.text('BÁO CÁO CHI TIẾT THEO DÕI SỬ DỤNG KINH PHÍ NGÂN SÁCH', 148, 43, { align: 'center' });
         
-        if(rowType === 'groupHeader'){
-          data.cell.styles.fontStyle='bold';
-          data.cell.styles.fillColor=[30, 58, 138];
-          data.cell.styles.textColor=[255, 255, 255];
-          data.cell.styles.fontSize=9;
-          data.cell.colSpan = 13; // Gộp toàn bộ 13 cột
+        // Page Number Footer
+        const pageCount = doc.internal.getNumberOfPages();
+        doc.setFontSize(8);
+        doc.setFont(fontName, 'normal');
+        doc.setTextColor(120);
+        doc.text('Trang ' + pageCount, 280, 205);
+      },
+      didParseCell: function(data) {
+        const rowIdx = data.row.index;
+        const rowData = rows[rowIdx];
+        if (!rowData) return;
+        const rowType = rowData.type;
+
+        if (rowType === 'groupHeader') {
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fillColor = [30, 58, 138];
+          data.cell.styles.textColor = [255, 255, 255];
+          data.cell.styles.fontSize = 8.5;
+          data.cell.colSpan = 13;
           data.cell.styles.halign = 'left';
         }
-        if(rowType === 'contentTotal'){
-          data.cell.styles.fontStyle='italic';
-          data.cell.styles.textColor=[100, 100, 100];
+        if (rowType === 'contentTotal') {
+          data.cell.styles.fontStyle = 'bolditalic';
+          data.cell.styles.fillColor = [245, 245, 245];
+          data.cell.styles.textColor = [50, 50, 50];
+          if (data.column.index === 0) {
+            data.cell.colSpan = 3;
+            data.cell.styles.halign = 'right';
+          }
         }
-        if(rowType === 'groupTotal'){
-          data.cell.styles.fontStyle='bold';
-          data.cell.styles.fillColor=[240, 240, 240];
+        if (rowType === 'groupTotal') {
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fillColor = [230, 235, 245];
+          if (data.column.index === 0) {
+            data.cell.colSpan = 3;
+            data.cell.styles.halign = 'right';
+          }
         }
-        if(rowType === 'grandTotal'){
-          data.cell.styles.fontStyle='bold';
-          data.cell.styles.fillColor=[220, 230, 255];
-          data.cell.styles.fontSize=8;
+        if (rowType === 'grandTotal') {
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fillColor = [30, 50, 100];
+          data.cell.styles.textColor = [255, 255, 255];
+          data.cell.styles.fontSize = 8;
+          if (data.column.index === 0) {
+            data.cell.colSpan = 3;
+            data.cell.styles.halign = 'right';
+          }
         }
 
-        // Negative numbers in red for specific columns
-        if(data.column.index===11 && data.section==='body'){
-          const val=data.cell.raw||'';
-          if(val.toString().startsWith('-')) data.cell.styles.textColor=[220,38,38];
+        // Color negative numbers
+        if (data.column.index === 11 && data.section === 'body') {
+          const val = data.cell.raw || '';
+          if (val.toString().startsWith('-')) data.cell.styles.textColor = [200, 0, 0];
         }
-        // Status colors
-        if(data.column.index===12 && data.section==='body' && rowType === 'item'){
-          const v=data.cell.raw;
-          if(v==='Vượt KP') data.cell.styles.textColor=[220,38,38];
-          else if(v==='Cảnh báo') data.cell.styles.textColor=[217,119,6];
-          else if(v==='Bình thường') data.cell.styles.textColor=[5,150,105];
+        // Status Colors
+        if (data.column.index === 12 && data.section === 'body' && rowType === 'item') {
+          const v = data.cell.raw;
+          if (v === 'Vượt KP') data.cell.styles.textColor = [200, 0, 0];
+          else if (v === 'Cảnh báo') data.cell.styles.textColor = [180, 100, 0];
+          else if (v === 'Bình thường') data.cell.styles.textColor = [0, 120, 60];
         }
       }
     });
-    // Footer
-    const pageCount=doc.internal.getNumberOfPages();
-    for(let i=1;i<=pageCount;i++){
-      doc.setPage(i);
-      doc.setFontSize(8);doc.setTextColor(150);
-      doc.text('Trang '+i+'/'+pageCount,280,200);
-    }
+    // Note: didDrawPage already handles page numbering and title
     const pdfBlob = doc.output('blob');
     downloadBlob(pdfBlob, `ngan_sach_${currentYear}.pdf`);
     toast('Da xuat file PDF thanh cong','success');
