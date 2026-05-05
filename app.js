@@ -779,23 +779,7 @@ function exportPDF(){
     }
     const fontName = window.TIMES_FONT_B64 ? 'TimesNewRoman' : 'helvetica';
 
-    // Agency Header
-    doc.setFontSize(10);
-    doc.setFont(fontName, 'bold');
-    doc.text('SỞ Y TẾ TỈNH LAI CHÂU', 40, 15, { align: 'center' });
-    doc.text('BỆNH VIỆN ĐA KHOA THAN UYÊN', 40, 20, { align: 'center' });
-    doc.setFont(fontName, 'normal');
-    doc.setLineWidth(0.3);
-    doc.line(20, 22, 60, 22);
-
-    // Title
-    doc.setFontSize(16);
-    doc.setFont(fontName, 'bold');
-    doc.text('BẢNG THEO DÕI SỬ DỤNG KINH PHÍ NGÂN SÁCH NHÀ NƯỚC', 148, 30, { align: 'center' });
-    doc.setFontSize(11);
-    doc.setFont(fontName, 'normal');
-    doc.text('Năm ngân sách: ' + currentYear, 148, 37, { align: 'center' });
-    doc.text('Ngày xuất: ' + new Date().toLocaleDateString('vi-VN'), 148, 43, { align: 'center' });
+    // Header logic moved to didDrawPage for consistency on all pages
     // Table data construction with grouping
     const dataOnly=items.filter(x=>!x.isGroupHeader);
     const groups=['KP THƯỜNG XUYÊN','KP KHÔNG THƯỜNG XUYÊN'];
@@ -909,15 +893,27 @@ function exportPDF(){
       },
       alternateRowStyles: { fillColor: [248, 250, 255] },
       didDrawPage: function(data) {
-        // Page Title on every page
+        // Full Header on every page
         doc.setFontSize(10);
         doc.setFont(fontName, 'bold');
-        doc.text('BÁO CÁO CHI TIẾT THEO DÕI SỬ DỤNG KINH PHÍ NGÂN SÁCH', 148, 43, { align: 'center' });
+        doc.text('SỞ Y TẾ TỈNH LAI CHÂU', 40, 15, { align: 'center' });
+        doc.text('BỆNH VIỆN ĐA KHOA THAN UYÊN', 40, 20, { align: 'center' });
+        doc.setFont(fontName, 'normal');
+        doc.setLineWidth(0.3);
+        doc.line(20, 22, 60, 22);
+
+        doc.setFontSize(14);
+        doc.setFont(fontName, 'bold');
+        doc.text('BẢNG THEO DÕI SỬ DỤNG KINH PHÍ NGÂN SÁCH NHÀ NƯỚC', 148, 30, { align: 'center' });
+        
+        doc.setFontSize(9);
+        doc.setFont(fontName, 'normal');
+        doc.text('Năm ngân sách: ' + currentYear, 148, 37, { align: 'center' });
+        doc.text('Ngày xuất: ' + new Date().toLocaleDateString('vi-VN'), 148, 43, { align: 'center' });
         
         // Page Number Footer
         const pageCount = doc.internal.getNumberOfPages();
         doc.setFontSize(8);
-        doc.setFont(fontName, 'normal');
         doc.setTextColor(120);
         doc.text('Trang ' + pageCount, 280, 205);
       },
