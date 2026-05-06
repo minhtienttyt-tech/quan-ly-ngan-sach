@@ -283,8 +283,11 @@ function renderDashboard(){
     </div>`;
   });
   document.getElementById('category-breakdown').innerHTML=bd||'<div class="empty-state"><div class="empty-icon">📂</div><p>Chưa có dữ liệu</p></div>';
-  // alerts
-  const alertData=[...overItems,...warnItems].slice(0,10);
+  // alerts - Chỉ cảnh báo đối với các nội dung lớn (có Mục)
+  const alertData = [...overItems, ...warnItems]
+    .filter(r => r.muc !== '') 
+    .slice(0, 10);
+    
   let al='';
   alertData.forEach(r=>{
     const s=getStatus(r);const tot=calcKpDuocSD(r);const p=tot>0?r.daDung/tot*100:0;
@@ -462,9 +465,9 @@ function renderReport(){
   });
   document.getElementById('rpt-expiring').textContent=exp.length;
   document.getElementById('rpt-over').textContent=data.filter(r=>getStatus(r)==='danger').length;
-  // charts
+  // charts - Chỉ hiển thị tiến độ đối với các nội dung lớn (có Mục)
   ['KP THƯỜNG XUYÊN','KP KHÔNG THƯỜNG XUYÊN'].forEach((g,gi)=>{
-    const gd=data.filter(r=>r.group===g).slice(0,8);
+    const gd=data.filter(r=>r.group===g && r.muc !== '').slice(0, 8);
     const colors=['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#f97316','#ec4899'];
     let html='';
     gd.forEach((r,i)=>{
@@ -1701,3 +1704,19 @@ if (document.readyState === 'loading') {
 } else {
   initApp();
 }
+
+// ===== AUTO SCALE FOR SMALL SCREENS =====
+function applyAutoScale() {
+  const width = window.innerWidth;
+  // Áp dụng cho các màn hình laptop từ 1200px đến 1500px
+  if (width >= 1200 && width < 1536) {
+    const scale = width / 1536;
+    document.body.style.zoom = scale;
+  } else {
+    document.body.style.zoom = 1;
+  }
+}
+
+window.addEventListener('resize', applyAutoScale);
+window.addEventListener('DOMContentLoaded', applyAutoScale);
+applyAutoScale();
