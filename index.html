@@ -540,7 +540,10 @@
               <!-- Google Apps Script URL -->
               <div class="form-group" style="margin-bottom: 24px;">
                 <label>URL Google Apps Script Web App</label>
-                <input type="text" id="setting-sheet-url" placeholder="https://script.google.com/macros/s/.../exec" style="width: 100%; margin-top: 6px; font-family: monospace; font-size: 12.5px;">
+                <div style="display: flex; gap: 10px; margin-top: 6px; align-items: center;">
+                  <input type="text" id="setting-sheet-url" placeholder="https://script.google.com/macros/s/.../exec" style="flex: 1; font-family: monospace; font-size: 12.5px; margin: 0;">
+                  <button type="button" class="btn-secondary" id="btn-reset-sheet-url" style="padding: 8px 16px; font-size: 12.5px; white-space: nowrap; margin: 0; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-primary); border-radius: var(--radius-sm); cursor: pointer; transition: all var(--transition);">Khôi phục mặc định</button>
+                </div>
                 <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
                   Đường dẫn URL Web App nhận được sau khi Triển khai (Deploy) Google Apps Script trên Google Sheet.
                 </p>

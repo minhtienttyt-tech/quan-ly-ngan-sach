@@ -2053,6 +2053,19 @@ async function initApp() {
       });
     }
 
+    const btnResetSheetUrl = document.getElementById('btn-reset-sheet-url');
+    if (btnResetSheetUrl) {
+      btnResetSheetUrl.addEventListener('click', () => {
+        const defaultUrl = 'https://script.google.com/macros/s/AKfycbzWtnH1l6HEnh75fwlm5m1RyEkQKMTrfWE2l2i73S6Sbaqfwn9HjnaJzj4WI4qDr20n/exec';
+        const su = document.getElementById('setting-sheet-url');
+        if (su) su.value = defaultUrl;
+        googleSheetUrl = defaultUrl;
+        localStorage.setItem('budget_sheet_url', defaultUrl);
+        setupAutoSync();
+        toast('Đã khôi phục URL Web App mặc định', 'success');
+      });
+    }
+
     const settingAutoSync = document.getElementById('setting-auto-sync');
     if (settingAutoSync) {
       settingAutoSync.addEventListener('change', e => {
