@@ -98,6 +98,7 @@ if (googleSheetUrl && !googleSheetUrl.startsWith('http://') && !googleSheetUrl.s
 
 let autoSyncTimeSeconds = localStorage.getItem('budget_auto_sync') || '30';
 let autoSyncIntervalId = null;
+let lastSaveTime = 0;
 
 function updateSyncStatus(status, text = '') {
   const dot = document.getElementById('header-sync-dot');
@@ -150,6 +151,12 @@ async function autoSyncFromGoogleSheet() {
     return;
   }
   if (document.hidden || editingId !== null) return;
+  
+  // Tránh đè đè dữ liệu khi người dùng vừa mới lưu cục bộ trong vòng 60 giây qua
+  if (Date.now() - lastSaveTime < 60000) {
+    console.log('Bỏ qua đồng bộ tự động vì vừa có hoạt động lưu dữ liệu.');
+    return;
+  }
 
   updateSyncStatus('syncing');
   try {
@@ -414,6 +421,9 @@ async function save(){
   const key = getStorageKey();
   localStorage.setItem(key, JSON.stringify(items));
   updateFormSuggestions();
+  
+  // Thiết lập thời gian lưu để tạm khóa đồng bộ tự động chạy đè
+  lastSaveTime = Date.now();
   
   // 1. Đồng bộ Google Sheets
   if (syncMode === 'sheet' || syncMode === 'both') {
@@ -1571,6 +1581,9 @@ function confirmImport(){
   }));
   existing=existing.concat(newItems);
   localStorage.setItem(key,JSON.stringify(existing));
+  
+  // Thiết lập thời gian lưu để tạm khóa đồng bộ tự động chạy đè
+  lastSaveTime = Date.now();
   // Save to cloud
   if (budgetSupabaseClient) {
     budgetSupabaseClient.from('budget_data').upsert({ year: String(year), items: existing })
