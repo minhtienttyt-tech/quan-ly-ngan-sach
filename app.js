@@ -1488,10 +1488,12 @@ function applyMapping(){
     let computedGroup = '';
     
     // Automatic categorization based on KBNN source codes (12 = Non-Frequent, 13 = Frequent)
+    const noidungUpper = noidung.toUpperCase();
     if (maNguon === '12') computedGroup = 'KP KHÔNG THƯỜNG XUYÊN';
     else if (maNguon === '13') computedGroup = 'KP THƯỜNG XUYÊN';
-    else if (noidung.toUpperCase().includes('KHÔNG THƯỜNG XUYÊN') || noidung.toUpperCase().includes('KTX') || noidung.includes('12')) computedGroup = 'KP KHÔNG THƯỜNG XUYÊN';
-    else if (noidung.toUpperCase().includes('THƯỜNG XUYÊN') || noidung.toUpperCase().includes('TX') || noidung.includes('13')) computedGroup = 'KP THƯỜNG XUYÊN';
+    else if (noidungUpper.includes('KHÔNG THƯỜNG XUYÊN') || noidungUpper.includes('KTX') || noidung.includes('12')) computedGroup = 'KP KHÔNG THƯỜNG XUYÊN';
+    else if (noidungUpper.includes('SỬA CHỮA THƯỜNG XUYÊN') || noidungUpper.includes('SUA CHUA THUONG XUYEN')) computedGroup = 'KP KHÔNG THƯỜNG XUYÊN';
+    else if (noidungUpper.includes('THƯỜNG XUYÊN') || noidungUpper.includes('TX') || noidung.includes('13')) computedGroup = 'KP THƯỜNG XUYÊN';
 
   parsed.push({
       muc:String(get('muc')||'').trim(),
