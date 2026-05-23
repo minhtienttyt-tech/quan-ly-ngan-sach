@@ -87,8 +87,8 @@ let currentPage=1;const PAGE_SIZE=50;
 let filterText='',filterGroup='',filterStatus='';
 let editingId=null;
 let currentNavFilter='all';
-let syncMode = localStorage.getItem('budget_sync_mode') || 'supabase'; // 'local' | 'supabase' | 'sheet' | 'both'
-let googleSheetUrl = (localStorage.getItem('budget_sheet_url') || '').trim();
+let syncMode = localStorage.getItem('budget_sync_mode') || 'sheet'; // 'local' | 'supabase' | 'sheet' | 'both'
+let googleSheetUrl = (localStorage.getItem('budget_sheet_url') || 'https://script.google.com/macros/s/AKfycbxqveyCYftGte9DBrymYjVraqwchF4v8x-s1qauV0ujJURMk1sX9I97WkTc2pAdE9ql/exec').trim();
 if (googleSheetUrl.startsWith('/')) {
   googleSheetUrl = googleSheetUrl.substring(1);
 }
