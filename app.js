@@ -80,7 +80,7 @@ const DEFAULT_DATA=[
 ];
 
 // ===== STATE =====
-let currentYear=2025;
+let currentYear=new Date().getFullYear();
 function getStorageKey(){return 'budget_items_'+currentYear;}
 let items=[];
 let currentPage=1;const PAGE_SIZE=50;
