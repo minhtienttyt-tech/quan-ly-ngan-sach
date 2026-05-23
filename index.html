@@ -91,6 +91,10 @@
           <span class="nav-icon">📈</span>
           <span>Báo cáo</span>
         </a>
+        <a href="#" class="nav-item role-admin-only" data-page="settings" id="nav-settings">
+          <span class="nav-icon">⚙️</span>
+          <span>Cấu hình bộ nhớ</span>
+        </a>
       </nav>
       <div class="sidebar-footer">
         <div class="fiscal-year-badge" style="margin-bottom: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px;" id="btnLogout">
@@ -124,6 +128,7 @@
           <button class="btn-export" id="btnExport">📥 CSV</button>
           <button class="btn-export btn-xlsx" id="btnExportXlsx">📊 Excel</button>
           <button class="btn-export btn-pdf" id="btnExportPdf">📄 PDF</button>
+          <button class="btn-export btn-sheet role-admin-only" id="header-btn-push-sheet">📤 Đồng bộ Sheet</button>
           <div class="date-display" id="currentDate"></div>
         </div>
       </header>
@@ -506,6 +511,75 @@
           </div>
         </div>
 
+        <!-- SETTINGS PAGE -->
+        <div class="page" id="page-settings">
+          <div class="card form-card" style="max-width: 800px;">
+            <div class="card-header">
+              <h2 class="card-title">⚙️ Cấu Hình Đồng Bộ Dữ Liệu</h2>
+            </div>
+            <div class="budget-form" style="padding: 24px;">
+              <!-- Storage Mode -->
+              <div class="form-group" style="margin-bottom: 20px;">
+                <label>Chế độ lưu trữ chính (Storage Mode)</label>
+                <select id="setting-storage-mode" style="width: 100%; margin-top: 6px;">
+                  <option value="local">Chỉ lưu cục bộ (LocalStorage)</option>
+                  <option value="supabase">Đồng bộ đám mây (Supabase)</option>
+                  <option value="sheet">Đồng bộ bảng tính (Google Sheets)</option>
+                  <option value="both">Đồng bộ cả Đám mây & Bảng tính (Supabase & Google Sheets)</option>
+                </select>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                  Lựa chọn nơi lưu trữ và đồng bộ dữ liệu kinh phí ngân sách của bạn.
+                </p>
+              </div>
+
+              <!-- Google Apps Script URL -->
+              <div class="form-group" style="margin-bottom: 24px;">
+                <label>URL Google Apps Script Web App</label>
+                <input type="text" id="setting-sheet-url" placeholder="https://script.google.com/macros/s/.../exec" style="width: 100%; margin-top: 6px; font-family: monospace; font-size: 12.5px;">
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                  Đường dẫn URL Web App nhận được sau khi Triển khai (Deploy) Google Apps Script trên Google Sheet.
+                </p>
+              </div>
+
+              <!-- Connection Status -->
+              <div class="calc-preview" style="gap: 20px; align-items: center; margin-bottom: 24px; padding: 12px 18px;">
+                <div class="calc-item">
+                  <span>Kết nối Google Sheet:</span>
+                  <strong id="sheet-conn-status" style="color: var(--text-muted);">Chưa cấu hình</strong>
+                </div>
+                <button type="button" class="btn-secondary" id="btn-test-sheet" style="padding: 8px 16px; font-size: 13px; font-weight: 600;">⚡ Kiểm tra kết nối</button>
+              </div>
+
+              <!-- Manual Sync -->
+              <div style="border-top: 1px solid var(--border); padding-top: 20px; margin-bottom: 24px;">
+                <h4 style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Đồng bộ thủ công (Manual Sync)</h4>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                  <button type="button" class="btn-primary" id="btn-pull-sheet" style="background: linear-gradient(135deg, var(--blue), #1d4ed8); padding: 10px 20px; font-size: 13px;">📥 Tải dữ liệu từ Sheet</button>
+                  <button type="button" class="btn-primary" id="btn-push-sheet" style="background: linear-gradient(135deg, var(--green), #047857); padding: 10px 20px; font-size: 13px;">📤 Gửi dữ liệu lên Sheet</button>
+                </div>
+                <p style="font-size: 11.5px; color: var(--text-muted); margin-top: 8px;">
+                  * Lưu ý: "Tải dữ liệu từ Sheet" sẽ ghi đè lên dữ liệu hiện tại trong Webapp. "Gửi dữ liệu lên Sheet" sẽ ghi đè dữ liệu trên Google Sheet hiện có của năm ngân sách đang chọn.
+                </p>
+              </div>
+
+              <!-- Guide -->
+              <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 18px; font-size: 12.5px; line-height: 1.6;">
+                <h4 style="font-weight: 600; margin-bottom: 8px; color: var(--blue-light);">📖 Hướng dẫn cấu hình Google Sheet:</h4>
+                <ol style="margin-left: 18px; display: flex; flex-direction: column; gap: 6px; color: var(--text-secondary); padding-left: 0;">
+                  <li>Mở bảng tính Google Sheet của bạn.</li>
+                  <li>Chọn <strong>Tiện ích mở rộng</strong> (Extensions) &gt; <strong>Apps Script</strong>.</li>
+                  <li>Xóa sạch mã mặc định, dán toàn bộ mã Google Apps Script được cung cấp.</li>
+                  <li>Nhấn biểu tượng 💾 (Lưu) hoặc nhấn Ctrl+S.</li>
+                  <li>Click vào nút <strong>Triển khai</strong> (Deploy) &gt; <strong>Triển khai mới</strong> (New deployment).</li>
+                  <li>Chọn biểu tượng bánh răng ở cột trái và chọn <strong>Ứng dụng web</strong> (Web app).</li>
+                  <li>Cấu hình: Chạy dưới quyền <strong>Tôi</strong> và Quyền truy cập <strong>Bất kỳ ai</strong> (Anyone).</li>
+                  <li>Click <strong>Triển khai</strong>, cấp quyền nếu được yêu cầu, sau đó copy đường dẫn <strong>URL ứng dụng web</strong> và dán vào ô bên trên.</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div><!-- end page-container -->
     </main>
   </div>
@@ -538,9 +612,9 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <script src="xlsx.full.min.js"></script>
+  <script src="jspdf.umd.min.js"></script>
+  <script src="jspdf.plugin.autotable.min.js"></script>
   <script src="times_font.js"></script>
 
   <!-- Orientation Overlay -->

@@ -551,6 +551,13 @@ body { background: var(--bg-base); color: var(--text-primary); min-height: 100vh
 }
 .btn-pdf:hover { box-shadow: 0 4px 20px var(--red-glow) !important; }
 
+/* ===== GOOGLE SHEET BUTTON ===== */
+.btn-sheet {
+  background: linear-gradient(135deg, var(--blue), #1d4ed8) !important;
+  box-shadow: 0 0 12px var(--blue-glow) !important;
+}
+.btn-sheet:hover { box-shadow: 0 4px 20px var(--blue-glow) !important; }
+
 /* ===== IMPORT SECTION ===== */
 .import-section { padding: 24px; }
 .import-info { text-align: center; padding: 24px 20px 20px; }

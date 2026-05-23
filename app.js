@@ -87,6 +87,14 @@ let currentPage=1;const PAGE_SIZE=50;
 let filterText='',filterGroup='',filterStatus='';
 let editingId=null;
 let currentNavFilter='all';
+let syncMode = localStorage.getItem('budget_sync_mode') || 'supabase'; // 'local' | 'supabase' | 'sheet' | 'both'
+let googleSheetUrl = (localStorage.getItem('budget_sheet_url') || '').trim();
+if (googleSheetUrl.startsWith('/')) {
+  googleSheetUrl = googleSheetUrl.substring(1);
+}
+if (googleSheetUrl && !googleSheetUrl.startsWith('http://') && !googleSheetUrl.startsWith('https://')) {
+  googleSheetUrl = 'https://' + googleSheetUrl;
+}
 
 // ===== budgetSupabaseClient CONFIG =====
 const SB_URL = 'https://ogejyvuakljsqbdrwyic.supabase.co';
@@ -102,9 +110,127 @@ try {
   console.error('budgetSupabaseClient Init Error:', e);
 }
 
+// --- LOAD FROM GOOGLE SHEET ---
+async function loadFromGoogleSheet(year) {
+  if (!googleSheetUrl) return null;
+  try {
+    const url = `${googleSheetUrl}?action=load&year=${year}`;
+    const res = await fetch(url, { method: 'GET', redirect: 'follow' });
+    const text = await res.text();
+    if (text.trim().startsWith('<') || text.includes('<!DOCTYPE html>') || text.includes('google-signin')) {
+      throw new Error('Cấu hình Apps Script chưa đúng (nhận được trang HTML). Hãy đảm bảo Apps Script chạy dưới quyền "Tôi" (Me) và truy cập bởi "Bất kỳ ai" (Anyone).');
+    }
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (parseErr) {
+      throw new Error('Không thể phân tích JSON phản hồi: ' + text.substring(0, 150));
+    }
+    if (data && data.status === 'success') {
+      return data.items;
+    } else {
+      throw new Error(data.message || 'Lỗi từ Google Sheets API');
+    }
+  } catch (err) {
+    console.error('Fetch Google Sheet Error:', err);
+    throw err;
+  }
+}
+
+// --- SAVE TO GOOGLE SHEET ---
+async function saveToGoogleSheet(year, itemsList) {
+  if (!googleSheetUrl) return false;
+  try {
+    const cleanItems = JSON.parse(JSON.stringify(itemsList));
+    const payload = {
+      action: 'save',
+      year: String(year),
+      items: cleanItems
+    };
+    const res = await fetch(googleSheetUrl, {
+      method: 'POST',
+      redirect: 'follow',
+      body: JSON.stringify(payload)
+    });
+    const text = await res.text();
+    if (text.trim().startsWith('<') || text.includes('<!DOCTYPE html>') || text.includes('google-signin')) {
+      throw new Error('Cấu hình Apps Script chưa đúng (nhận được trang HTML). Hãy đảm bảo Apps Script chạy dưới quyền "Tôi" (Me) và truy cập bởi "Bất kỳ ai" (Anyone).');
+    }
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (parseErr) {
+      throw new Error('Không thể phân tích JSON phản hồi: ' + text.substring(0, 150));
+    }
+    if (data && data.status === 'success') {
+      return true;
+    } else {
+      throw new Error(data.message || 'Lỗi lưu Google Sheet');
+    }
+  } catch (err) {
+    console.error('Save Google Sheet Error:', err);
+    throw err;
+  }
+}
+
+// --- TEST CONNECTION ---
+async function testGoogleSheetConnection() {
+  const urlInput = document.getElementById('setting-sheet-url');
+  const statusEl = document.getElementById('sheet-conn-status');
+  if (!urlInput) return;
+  let url = urlInput.value.trim();
+  if (!url) {
+    toast('Vui lòng nhập URL Web App', 'error');
+    return;
+  }
+  if (url.startsWith('/')) {
+    url = url.substring(1);
+  }
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    url = 'https://' + url;
+  }
+  urlInput.value = url;
+  googleSheetUrl = url;
+  localStorage.setItem('budget_sheet_url', url);
+  
+  statusEl.textContent = 'Đang kiểm tra...';
+  statusEl.style.color = 'var(--text-muted)';
+  
+  try {
+    const pingUrl = `${url}?action=ping`;
+    const res = await fetch(pingUrl, { method: 'GET', redirect: 'follow' });
+    const text = await res.text();
+    if (text.trim().startsWith('<') || text.includes('<!DOCTYPE html>') || text.includes('google-signin')) {
+      throw new Error('Cấu hình Apps Script chưa đúng (nhận được trang HTML). Hãy đảm bảo Apps Script chạy dưới quyền "Tôi" (Me) và truy cập bởi "Bất kỳ ai" (Anyone).');
+    }
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (parseErr) {
+      throw new Error('Không thể phân tích JSON phản hồi: ' + text.substring(0, 150));
+    }
+    if (data && data.status === 'success') {
+      statusEl.textContent = 'Kết nối thành công!';
+      statusEl.style.color = 'var(--green)';
+      toast('Kết nối Google Sheet thành công!', 'success');
+      // Save URL if successful
+      googleSheetUrl = url;
+      localStorage.setItem('budget_sheet_url', googleSheetUrl);
+    } else {
+      statusEl.textContent = 'Lỗi kết nối';
+      statusEl.style.color = 'var(--red)';
+      toast(data.message || 'Lỗi kiểm tra kết nối', 'error');
+    }
+  } catch (err) {
+    statusEl.textContent = 'Lỗi kết nối';
+    statusEl.style.color = 'var(--red)';
+    console.error('Test Sheet Connection Error:', err);
+    toast('Không thể kết nối đến Google Sheets: ' + err.message, 'error');
+  }
+}
+
 async function loadCurrentYearData(){
   const key = getYearKey(currentYear);
-  
   
   // Quick load from local
   const localData = localStorage.getItem(key);
@@ -120,30 +246,53 @@ async function loadCurrentYearData(){
     updateFormSuggestions();
   }
 
-  if (!budgetSupabaseClient) return;
-
-  try {
-    const { data, error } = await budgetSupabaseClient.from('budget_data').select('items').eq('year', String(currentYear)).maybeSingle();
-    if (error) throw error;
-    if (data && data.items) {
-      items = data.items;
-      localStorage.setItem(key, JSON.stringify(items));
-      
-      
-      const activePg = document.querySelector('.page.active');
-      if (activePg) {
-        const pageId = activePg.id.replace('page-', '');
-        if (pageId === 'dashboard') renderDashboard();
-        if (pageId === 'budget') renderTable();
+  // Tải dữ liệu từ Google Sheets nếu chế độ là 'sheet' hoặc 'both'
+  if (syncMode === 'sheet' || syncMode === 'both') {
+    if (googleSheetUrl) {
+      try {
+        const sheetItems = await loadFromGoogleSheet(currentYear);
+        if (sheetItems) {
+          items = sheetItems;
+          localStorage.setItem(key, JSON.stringify(items));
+          
+          const activePg = document.querySelector('.page.active');
+          if (activePg) {
+            const pageId = activePg.id.replace('page-', '');
+            if (pageId === 'dashboard') renderDashboard();
+            if (pageId === 'budget') renderTable();
+          }
+          updateFormSuggestions();
+          console.log('Google Sheets data loaded successfully.');
+        }
+      } catch (err) {
+        console.error('Lỗi khi tải từ Google Sheets:', err);
+        toast('Không thể kết nối Google Sheet, đang dùng dữ liệu cache.', 'error');
       }
-      updateFormSuggestions();
-    } else {
-      
     }
-  } catch (err) { 
-    console.error('Cloud Error:', err); 
-    const errorDetail = err.message || 'Lỗi không xác định';
-    
+  }
+
+  // Tải dữ liệu từ Supabase nếu chế độ là 'supabase' hoặc 'both'
+  if (syncMode === 'supabase' || syncMode === 'both') {
+    if (!budgetSupabaseClient) return;
+
+    try {
+      const { data, error } = await budgetSupabaseClient.from('budget_data').select('items').eq('year', String(currentYear)).maybeSingle();
+      if (error) throw error;
+      if (data && data.items) {
+        items = data.items;
+        localStorage.setItem(key, JSON.stringify(items));
+        
+        const activePg = document.querySelector('.page.active');
+        if (activePg) {
+          const pageId = activePg.id.replace('page-', '');
+          if (pageId === 'dashboard') renderDashboard();
+          if (pageId === 'budget') renderTable();
+        }
+        updateFormSuggestions();
+      }
+    } catch (err) { 
+      console.error('Cloud Error:', err); 
+    }
   }
 }
 
@@ -153,37 +302,50 @@ async function save(){
   localStorage.setItem(key, JSON.stringify(items));
   updateFormSuggestions();
   
-  
-  if (!budgetSupabaseClient) {
-    
-    return;
+  // 1. Đồng bộ Google Sheets
+  if (syncMode === 'sheet' || syncMode === 'both') {
+    if (googleSheetUrl) {
+      saveToGoogleSheet(currentYear, items)
+        .then(success => {
+          if (success) {
+            console.log('Đã tự động lưu Google Sheet thành công.');
+          }
+        })
+        .catch(err => {
+          console.error('Lỗi tự động đồng bộ Google Sheet:', err);
+          toast('Lỗi tự động đồng bộ Google Sheet: ' + err.message, 'error');
+        });
+    }
   }
+  
+  // 2. Đồng bộ Supabase (giữ nguyên gốc)
+  if (syncMode === 'supabase' || syncMode === 'both') {
+    if (!budgetSupabaseClient) return;
 
-  try {
-    // Clean data to avoid common JSON errors
-    const cleanItems = JSON.parse(JSON.stringify(items));
-    
-    const { error } = await budgetSupabaseClient
-      .from('budget_data')
-      .upsert({ year: String(currentYear), items: cleanItems }, { onConflict: 'year' });
-    
-    if (error) {
-      console.error('Supabase Error:', error);
+    try {
+      // Clean data to avoid common JSON errors
+      const cleanItems = JSON.parse(JSON.stringify(items));
       
-      throw error;
-    }
-    
-    
-    console.log('Sync success for year:', currentYear);
-  } catch (err) {
-    console.error('budgetSupabaseClient Save error:', err);
-    if (window.logDebug) {
-      const msg = err.message || err.details || 'Không xác định';
-      if (!msg.includes('Lỗi Cloud')) {
-        window.logDebug('Lỗi hệ thống: ' + msg, 'error');
+      const { error } = await budgetSupabaseClient
+        .from('budget_data')
+        .upsert({ year: String(currentYear), items: cleanItems }, { onConflict: 'year' });
+      
+      if (error) {
+        console.error('Supabase Error:', error);
+        throw error;
       }
+      
+      console.log('Sync success for year:', currentYear);
+    } catch (err) {
+      console.error('budgetSupabaseClient Save error:', err);
+      if (window.logDebug) {
+        const msg = err.message || err.details || 'Không xác định';
+        if (!msg.includes('Lỗi Cloud')) {
+          window.logDebug('Lỗi hệ thống: ' + msg, 'error');
+        }
+      }
+      toast('Lỗi khi đồng bộ dữ liệu lên đám mây (Supabase)', 'error');
     }
-    toast('Lỗi khi đồng bộ dữ liệu lên đám mây', 'error');
   }
 }
 function nextId(){return items.length?Math.max(...items.map(x=>x.id))+1:1;}
@@ -194,7 +356,7 @@ function nextId(){return items.length?Math.max(...items.map(x=>x.id))+1:1;}
 // ===== NAV =====
 function budgetNavigate(page, filter=''){
   const role = localStorage.getItem('budget_user_role');
-  if (role !== 'admin' && (page === 'add' || page === 'import')) {
+  if (role !== 'admin' && (page === 'add' || page === 'import' || page === 'settings')) {
     page = 'dashboard';
     toast('Bạn không có quyền truy cập chức năng này', 'error');
   }
@@ -227,7 +389,8 @@ function budgetNavigate(page, filter=''){
     dashboard:['Tổng Quan Ngân Sách','Theo dõi tình hình sử dụng kinh phí ngân sách nhà nước cấp'],
     add:['Thêm Khoản Chi','Nhập thông tin khoản chi mới'],
     report:['Báo Cáo Tổng Hợp','Phân tích và thống kê tình hình sử dụng ngân sách'],
-    import:['Nhập Dữ Liệu Cũ','Nhập và quản lý dữ liệu ngân sách các năm trước']
+    import:['Nhập Dữ Liệu Cũ','Nhập và quản lý dữ liệu ngân sách các năm trước'],
+    settings:['Cấu hình bộ nhớ','Thiết lập chế độ lưu trữ và liên kết Google Sheet']
   };
 
   if (page === 'budget' && subTitles[currentNavFilter]) {
@@ -246,6 +409,22 @@ function budgetNavigate(page, filter=''){
   if(page==='report')renderReport();
   if(page==='add'&&!editingId)resetForm();
   if(page==='import')renderYearHistory();
+  if(page==='settings'){
+    const sm = document.getElementById('setting-storage-mode');
+    if (sm) sm.value = syncMode;
+    const su = document.getElementById('setting-sheet-url');
+    if (su) su.value = googleSheetUrl;
+    const connStatus = document.getElementById('sheet-conn-status');
+    if (connStatus) {
+      if (googleSheetUrl) {
+        connStatus.textContent = 'Sẵn sàng (chưa test)';
+        connStatus.style.color = 'var(--text-muted)';
+      } else {
+        connStatus.textContent = 'Chưa cấu hình';
+        connStatus.style.color = 'var(--text-muted)';
+      }
+    }
+  }
 }
 
 // ===== DASHBOARD =====
@@ -348,6 +527,9 @@ function renderTable(){
         const conLai = calcConLai(r);
         const isDetail = !!(r.muc || r.tieumuc);
         const conLaiCls = isDetail ? '' : (conLai < 0 ? 'negative' : (conLai === 0 ? '' : 'ok'));
+        
+        subAlloc += kpDuoc;
+        subUsed += (+r.daDung || 0);
         
         html += `<tr class="${r.dtCapNam > 0 ? 'row-parent-content' : ''}">
           <td class="td-muc">${r.muc || ''}</td>
@@ -1277,6 +1459,21 @@ function confirmImport(){
     budgetSupabaseClient.from('budget_data').upsert({ year: String(year), items: existing })
       .then(({error}) => { if(error) console.error(error); });
   }
+  // Save to Google Sheet
+  if (syncMode === 'sheet' || syncMode === 'both') {
+    if (googleSheetUrl) {
+      saveToGoogleSheet(year, existing)
+        .then(success => {
+          if (success) {
+            console.log('Đồng bộ Google Sheets thành công sau khi nhập dữ liệu.');
+          }
+        })
+        .catch(err => {
+          console.error('Lỗi đồng bộ Google Sheet sau khi nhập dữ liệu:', err);
+          toast('Lỗi đồng bộ Google Sheet sau khi nhập dữ liệu!', 'error');
+        });
+    }
+  }
 
   // If importing to current year, reload items
   if(+year===currentYear){
@@ -1419,18 +1616,9 @@ async function initApp() {
 
     const userEl = document.getElementById('login-username');
     const passEl = document.getElementById('login-password');
-    if (passEl) {
-      passEl.addEventListener('keypress', e => { if (e.key === 'Enter') handleLogin(); });
-    }
     if (userEl) {
       userEl.addEventListener('keypress', e => { if (e.key === 'Enter' && passEl) passEl.focus(); });
     }
-    
-    if (btnLogin) {
-      btnLogin.addEventListener('click', handleLogin);
-    }
-
-    checkAuth();
 
     checkAuth();
 
@@ -1687,12 +1875,123 @@ async function initApp() {
               budgetSupabaseClient.from('budget_data').upsert({ year: String(targetYear), items: otherItems })
                 .then(({error}) => { if(error) console.error(error); });
             }
+            // Also save to Google Sheet for other years
+            if (syncMode === 'sheet' || syncMode === 'both') {
+              if (googleSheetUrl) {
+                saveToGoogleSheet(targetYear, otherItems)
+                  .then(success => {
+                    if (success) console.log('Đồng bộ Google Sheets thành công cho năm ' + targetYear);
+                  })
+                  .catch(err => {
+                    console.error('Lỗi đồng bộ Google Sheet cho năm ' + targetYear, err);
+                    toast('Lỗi đồng bộ Google Sheet cho năm ' + targetYear + ': ' + err.message, 'error');
+                  });
+              }
+            }
             toast('Đã thêm khoản chi vào năm ' + targetYear, 'success');
           }
         }
         resetForm(); budgetNavigate('budget', currentNavFilter);
       });
     }
+
+    // ===== SETTINGS PAGE BINDINGS =====
+    const settingStorageMode = document.getElementById('setting-storage-mode');
+    if (settingStorageMode) {
+      settingStorageMode.addEventListener('change', e => {
+        syncMode = e.target.value;
+        localStorage.setItem('budget_sync_mode', syncMode);
+        toast('Đã lưu chế độ lưu trữ: ' + syncMode, 'success');
+      });
+    }
+
+    const settingSheetUrl = document.getElementById('setting-sheet-url');
+    if (settingSheetUrl) {
+      settingSheetUrl.addEventListener('change', e => {
+        let url = e.target.value.trim();
+        if (url.startsWith('/')) {
+          url = url.substring(1);
+        }
+        if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+          url = 'https://' + url;
+        }
+        e.target.value = url;
+        googleSheetUrl = url;
+        localStorage.setItem('budget_sheet_url', googleSheetUrl);
+      });
+    }
+
+    const btnTestSheet = document.getElementById('btn-test-sheet');
+    if (btnTestSheet) {
+      btnTestSheet.addEventListener('click', testGoogleSheetConnection);
+    }
+
+    const btnPullSheet = document.getElementById('btn-pull-sheet');
+    if (btnPullSheet) {
+      btnPullSheet.addEventListener('click', async () => {
+        if (!googleSheetUrl) {
+          toast('Vui lòng cấu hình URL Google Sheets trước', 'error');
+          return;
+        }
+        btnPullSheet.disabled = true;
+        const originalText = btnPullSheet.innerText;
+        btnPullSheet.innerText = '⏳ Đang tải...';
+        try {
+          const sheetItems = await loadFromGoogleSheet(currentYear);
+          if (sheetItems) {
+            items = sheetItems;
+            const key = getYearKey(currentYear);
+            localStorage.setItem(key, JSON.stringify(items));
+            renderDashboard();
+            renderTable();
+            toast('Tải dữ liệu từ Google Sheet thành công!', 'success');
+          } else {
+            toast('Dữ liệu trống hoặc không hợp lệ', 'warning');
+          }
+        } catch (err) {
+          console.error(err);
+          toast('Lỗi khi tải dữ liệu từ Google Sheet: ' + err.message, 'error');
+        } finally {
+          btnPullSheet.disabled = false;
+          btnPullSheet.innerText = originalText;
+        }
+      });
+    }
+
+    const btnPushSheet = document.getElementById('btn-push-sheet');
+    const headerBtnPushSheet = document.getElementById('header-btn-push-sheet');
+    const handlePushClick = async () => {
+      if (!googleSheetUrl) {
+        toast('Vui lòng cấu hình URL Google Sheets trước', 'error');
+        return;
+      }
+      customConfirm(`Bạn có chắc chắn muốn gửi toàn bộ dữ liệu năm ${currentYear} lên Google Sheets? Thao tác này sẽ ghi đè dữ liệu trên Sheet.`, async () => {
+        const buttons = [btnPushSheet, headerBtnPushSheet].filter(Boolean);
+        buttons.forEach(btn => {
+          btn.disabled = true;
+          btn.dataset.origText = btn.innerText;
+          btn.innerText = '⏳ Đang gửi...';
+        });
+        try {
+          const success = await saveToGoogleSheet(currentYear, items);
+          if (success) {
+            toast('Gửi dữ liệu lên Google Sheet thành công!', 'success');
+          } else {
+            toast('Gửi dữ liệu lên Google Sheet thất bại', 'error');
+          }
+        } catch (err) {
+          console.error(err);
+          toast('Lỗi khi gửi dữ liệu lên Google Sheet: ' + err.message, 'error');
+        } finally {
+          buttons.forEach(btn => {
+            btn.disabled = false;
+            btn.innerText = btn.dataset.origText || btn.innerText;
+          });
+        }
+      });
+    };
+    if (btnPushSheet) btnPushSheet.addEventListener('click', handlePushClick);
+    if (headerBtnPushSheet) headerBtnPushSheet.addEventListener('click', handlePushClick);
 
   } catch (globalErr) {
     console.error('LỖI KHỞI TẠO NGHIÊM TRỌNG:', globalErr);
