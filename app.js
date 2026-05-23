@@ -96,6 +96,116 @@ if (googleSheetUrl && !googleSheetUrl.startsWith('http://') && !googleSheetUrl.s
   googleSheetUrl = 'https://' + googleSheetUrl;
 }
 
+let autoSyncTimeSeconds = localStorage.getItem('budget_auto_sync') || '30';
+let autoSyncIntervalId = null;
+
+function updateSyncStatus(status, text = '') {
+  const dot = document.getElementById('header-sync-dot');
+  const txt = document.getElementById('header-sync-text');
+  if (!dot) return;
+  
+  dot.classList.remove('synced', 'syncing', 'error', 'off', 'synced-pulse');
+  
+  if (status === 'synced') {
+    dot.classList.add('synced');
+    if (text) {
+      txt.textContent = text;
+    } else {
+      const now = new Date();
+      const timeStr = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+      txt.textContent = 'Đồng bộ lúc ' + timeStr;
+    }
+  } else if (status === 'synced-pulse') {
+    dot.classList.add('synced-pulse');
+    setTimeout(() => {
+      dot.classList.remove('synced-pulse');
+      dot.classList.add('synced');
+    }, 1200);
+    if (text) {
+      txt.textContent = text;
+    } else {
+      const now = new Date();
+      const timeStr = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+      txt.textContent = 'Vừa cập nhật (' + timeStr + ')';
+    }
+  } else if (status === 'syncing') {
+    dot.classList.add('syncing');
+    txt.textContent = 'Đang đồng bộ...';
+  } else if (status === 'error') {
+    dot.classList.add('error');
+    txt.textContent = text || 'Lỗi kết nối';
+  } else {
+    dot.classList.add('off');
+    txt.textContent = 'Tắt tự động đồng bộ';
+  }
+}
+
+async function autoSyncFromGoogleSheet() {
+  if (syncMode !== 'sheet' && syncMode !== 'both') {
+    updateSyncStatus('off');
+    return;
+  }
+  if (!googleSheetUrl) {
+    updateSyncStatus('error', 'Chưa cấu hình URL');
+    return;
+  }
+  if (document.hidden || editingId !== null) return;
+
+  updateSyncStatus('syncing');
+  try {
+    const sheetItems = await loadFromGoogleSheet(currentYear);
+    if (sheetItems) {
+      const key = getYearKey(currentYear);
+      const isChanged = JSON.stringify(sheetItems) !== JSON.stringify(items);
+      
+      if (isChanged) {
+        items = sheetItems;
+        localStorage.setItem(key, JSON.stringify(items));
+        
+        const activePg = document.querySelector('.page.active');
+        if (activePg) {
+          const pageId = activePg.id.replace('page-', '');
+          if (pageId === 'dashboard') renderDashboard();
+          if (pageId === 'budget') renderTable();
+          if (pageId === 'report') renderReport();
+        }
+        updateFormSuggestions();
+        updateSyncStatus('synced-pulse');
+      } else {
+        updateSyncStatus('synced');
+      }
+    }
+  } catch (err) {
+    console.error('Background Sync Error:', err);
+    updateSyncStatus('error', 'Lỗi đồng bộ');
+  }
+}
+
+function setupAutoSync() {
+  if (autoSyncIntervalId) {
+    clearInterval(autoSyncIntervalId);
+    autoSyncIntervalId = null;
+  }
+  
+  if (syncMode !== 'sheet' && syncMode !== 'both') {
+    updateSyncStatus('off');
+    return;
+  }
+
+  if (autoSyncTimeSeconds === 'off') {
+    updateSyncStatus('off');
+    return;
+  }
+
+  const seconds = parseInt(autoSyncTimeSeconds);
+  if (!isNaN(seconds) && seconds > 0) {
+    autoSyncIntervalId = setInterval(autoSyncFromGoogleSheet, seconds * 1000);
+    const now = new Date();
+    const timeStr = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+    updateSyncStatus('synced', 'Đồng bộ lúc ' + timeStr);
+  }
+}
+
 // ===== budgetSupabaseClient CONFIG =====
 const SB_URL = 'https://ogejyvuakljsqbdrwyic.supabase.co';
 const SB_KEY = 'sb_publishable_LyLDY8I2dJf3o0Mmmg_4JQ__hs_G73t';
@@ -114,7 +224,7 @@ try {
 async function loadFromGoogleSheet(year) {
   if (!googleSheetUrl) return null;
   try {
-    const url = `${googleSheetUrl}?action=load&year=${year}`;
+    const url = `${googleSheetUrl}?action=load&year=${year}&_t=${new Date().getTime()}`;
     const res = await fetch(url, { method: 'GET', redirect: 'follow' });
     const text = await res.text();
     if (text.trim().startsWith('<') || text.includes('<!DOCTYPE html>') || text.includes('google-signin')) {
@@ -197,7 +307,7 @@ async function testGoogleSheetConnection() {
   statusEl.style.color = 'var(--text-muted)';
   
   try {
-    const pingUrl = `${url}?action=ping`;
+    const pingUrl = `${url}?action=ping&_t=${new Date().getTime()}`;
     const res = await fetch(pingUrl, { method: 'GET', redirect: 'follow' });
     const text = await res.text();
     if (text.trim().startsWith('<') || text.includes('<!DOCTYPE html>') || text.includes('google-signin')) {
@@ -249,6 +359,7 @@ async function loadCurrentYearData(){
   // Tải dữ liệu từ Google Sheets nếu chế độ là 'sheet' hoặc 'both'
   if (syncMode === 'sheet' || syncMode === 'both') {
     if (googleSheetUrl) {
+      updateSyncStatus('syncing');
       try {
         const sheetItems = await loadFromGoogleSheet(currentYear);
         if (sheetItems) {
@@ -263,9 +374,11 @@ async function loadCurrentYearData(){
           }
           updateFormSuggestions();
           console.log('Google Sheets data loaded successfully.');
+          updateSyncStatus('synced-pulse');
         }
       } catch (err) {
         console.error('Lỗi khi tải từ Google Sheets:', err);
+        updateSyncStatus('error', 'Lỗi kết nối');
         toast('Không thể kết nối Google Sheet, đang dùng dữ liệu cache.', 'error');
       }
     }
@@ -414,6 +527,8 @@ function budgetNavigate(page, filter=''){
     if (sm) sm.value = syncMode;
     const su = document.getElementById('setting-sheet-url');
     if (su) su.value = googleSheetUrl;
+    const sas = document.getElementById('setting-auto-sync');
+    if (sas) sas.value = autoSyncTimeSeconds;
     const connStatus = document.getElementById('sheet-conn-status');
     if (connStatus) {
       if (googleSheetUrl) {
@@ -1901,6 +2016,7 @@ async function initApp() {
       settingStorageMode.addEventListener('change', e => {
         syncMode = e.target.value;
         localStorage.setItem('budget_sync_mode', syncMode);
+        setupAutoSync();
         toast('Đã lưu chế độ lưu trữ: ' + syncMode, 'success');
       });
     }
@@ -1918,6 +2034,17 @@ async function initApp() {
         e.target.value = url;
         googleSheetUrl = url;
         localStorage.setItem('budget_sheet_url', googleSheetUrl);
+        setupAutoSync();
+      });
+    }
+
+    const settingAutoSync = document.getElementById('setting-auto-sync');
+    if (settingAutoSync) {
+      settingAutoSync.addEventListener('change', e => {
+        autoSyncTimeSeconds = e.target.value;
+        localStorage.setItem('budget_auto_sync', autoSyncTimeSeconds);
+        setupAutoSync();
+        toast('Đã lưu cấu hình tự động đồng bộ: ' + (autoSyncTimeSeconds === 'off' ? 'Tắt' : autoSyncTimeSeconds + ' giây'), 'success');
       });
     }
 
@@ -1927,36 +2054,42 @@ async function initApp() {
     }
 
     const btnPullSheet = document.getElementById('btn-pull-sheet');
-    if (btnPullSheet) {
-      btnPullSheet.addEventListener('click', async () => {
-        if (!googleSheetUrl) {
-          toast('Vui lòng cấu hình URL Google Sheets trước', 'error');
-          return;
-        }
-        btnPullSheet.disabled = true;
-        const originalText = btnPullSheet.innerText;
-        btnPullSheet.innerText = '⏳ Đang tải...';
-        try {
-          const sheetItems = await loadFromGoogleSheet(currentYear);
-          if (sheetItems) {
-            items = sheetItems;
-            const key = getYearKey(currentYear);
-            localStorage.setItem(key, JSON.stringify(items));
-            renderDashboard();
-            renderTable();
-            toast('Tải dữ liệu từ Google Sheet thành công!', 'success');
-          } else {
-            toast('Dữ liệu trống hoặc không hợp lệ', 'warning');
-          }
-        } catch (err) {
-          console.error(err);
-          toast('Lỗi khi tải dữ liệu từ Google Sheet: ' + err.message, 'error');
-        } finally {
-          btnPullSheet.disabled = false;
-          btnPullSheet.innerText = originalText;
-        }
+    const headerBtnPullSheet = document.getElementById('header-btn-pull-sheet');
+    const handlePullClick = async () => {
+      if (!googleSheetUrl) {
+        toast('Vui lòng cấu hình URL Google Sheets trước', 'error');
+        return;
+      }
+      const buttons = [btnPullSheet, headerBtnPullSheet].filter(Boolean);
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        btn.dataset.origText = btn.innerText;
+        btn.innerText = '⏳ Đang tải...';
       });
-    }
+      try {
+        const sheetItems = await loadFromGoogleSheet(currentYear);
+        if (sheetItems) {
+          items = sheetItems;
+          const key = getYearKey(currentYear);
+          localStorage.setItem(key, JSON.stringify(items));
+          renderDashboard();
+          renderTable();
+          toast('Tải dữ liệu từ Google Sheet thành công!', 'success');
+        } else {
+          toast('Dữ liệu trống hoặc không hợp lệ', 'warning');
+        }
+      } catch (err) {
+        console.error(err);
+        toast('Lỗi khi tải dữ liệu từ Google Sheet: ' + err.message, 'error');
+      } finally {
+        buttons.forEach(btn => {
+          btn.disabled = false;
+          btn.innerText = btn.dataset.origText || btn.innerText;
+        });
+      }
+    };
+    if (btnPullSheet) btnPullSheet.addEventListener('click', handlePullClick);
+    if (headerBtnPullSheet) headerBtnPullSheet.addEventListener('click', handlePullClick);
 
     const btnPushSheet = document.getElementById('btn-push-sheet');
     const headerBtnPushSheet = document.getElementById('header-btn-push-sheet');
@@ -1992,6 +2125,9 @@ async function initApp() {
     };
     if (btnPushSheet) btnPushSheet.addEventListener('click', handlePushClick);
     if (headerBtnPushSheet) headerBtnPushSheet.addEventListener('click', handlePushClick);
+
+    // Initialize Auto Sync at startup
+    setupAutoSync();
 
   } catch (globalErr) {
     console.error('LỖI KHỞI TẠO NGHIÊM TRỌNG:', globalErr);
