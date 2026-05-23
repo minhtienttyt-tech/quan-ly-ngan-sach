@@ -88,7 +88,7 @@ let filterText='',filterGroup='',filterStatus='';
 let editingId=null;
 let currentNavFilter='all';
 let syncMode = localStorage.getItem('budget_sync_mode') || 'sheet'; // 'local' | 'supabase' | 'sheet' | 'both'
-let googleSheetUrl = (localStorage.getItem('budget_sheet_url') || 'https://script.google.com/macros/s/AKfycbzWtnH1l6HEnh75fwlm5m1RyEkQKMTrfWE2l2i73S6Sbaqfwn9HjnaJzj4WI4qDr20n/exec').trim();
+let googleSheetUrl = (localStorage.getItem('budget_sheet_url') || 'https://script.google.com/macros/s/AKfycbxBTxMzJwXLsGInfWhblYFFZ9WtCgDTQKb9g8S66v1K1pSO39WkWMzQGf_NVNqR5faJ/exec').trim();
 if (googleSheetUrl.startsWith('/')) {
   googleSheetUrl = googleSheetUrl.substring(1);
 }
@@ -2056,7 +2056,7 @@ async function initApp() {
     const btnResetSheetUrl = document.getElementById('btn-reset-sheet-url');
     if (btnResetSheetUrl) {
       btnResetSheetUrl.addEventListener('click', () => {
-        const defaultUrl = 'https://script.google.com/macros/s/AKfycbzWtnH1l6HEnh75fwlm5m1RyEkQKMTrfWE2l2i73S6Sbaqfwn9HjnaJzj4WI4qDr20n/exec';
+        const defaultUrl = 'https://script.google.com/macros/s/AKfycbxBTxMzJwXLsGInfWhblYFFZ9WtCgDTQKb9g8S66v1K1pSO39WkWMzQGf_NVNqR5faJ/exec';
         const su = document.getElementById('setting-sheet-url');
         if (su) su.value = defaultUrl;
         googleSheetUrl = defaultUrl;
