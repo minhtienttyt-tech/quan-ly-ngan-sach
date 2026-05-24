@@ -100,6 +100,124 @@ let autoSyncTimeSeconds = localStorage.getItem('budget_auto_sync') || '30';
 let autoSyncIntervalId = null;
 let lastSaveTime = 0;
 
+// ===== UNIT SETUP & BANNER =====
+
+/**
+ * Đọc thông tin đơn vị từ localStorage và cập nhật tất cả các phần tử hiển thị động
+ */
+function renderUnitBanner() {
+  const unitName   = localStorage.getItem('unit_name')    || 'Bệnh viện đa khoa Than Uyên';
+  const dept       = localStorage.getItem('unit_dept')    || 'Phòng KH-TC-ĐD';
+  const contact    = localStorage.getItem('unit_contact') || 'Phạm Minh Tiến';
+  const phone      = localStorage.getItem('unit_phone')   || '0975198657';
+
+  // --- Login hero banner ---
+  const heroName  = document.getElementById('login-hero-name');
+  const heroDept  = document.getElementById('login-hero-dept');
+  const heroUnit  = document.getElementById('login-hero-unit');
+  const heroPhone = document.getElementById('login-hero-phone');
+  if (heroName)  heroName.textContent  = contact;
+  if (heroDept)  heroDept.textContent  = dept;
+  if (heroUnit)  heroUnit.textContent  = unitName;
+  if (heroPhone) {
+    heroPhone.textContent = phone.replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3');
+    heroPhone.href = 'tel:' + phone;
+  }
+
+  // --- Sidebar contact card ---
+  const sbName  = document.getElementById('sidebar-contact-name');
+  const sbDept  = document.getElementById('sidebar-contact-dept');
+  const sbPhone = document.getElementById('sidebar-contact-phone');
+  if (sbName)  sbName.textContent  = contact;
+  if (sbDept)  sbDept.textContent  = dept + ' · ' + unitName;
+  if (sbPhone) sbPhone.textContent = '📞 ' + phone.replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3');
+}
+
+/**
+ * Hiển thị màn hình setup và điền sẵn thông tin hiện tại
+ */
+window.openSetupScreen = function() {
+  const setupScreen = document.getElementById('setup-screen');
+  if (!setupScreen) return;
+
+  // Điền sẵn giá trị hiện tại
+  const fields = {
+    'setup-unit-name':    localStorage.getItem('unit_name')    || '',
+    'setup-department':   localStorage.getItem('unit_dept')    || '',
+    'setup-contact-name': localStorage.getItem('unit_contact') || '',
+    'setup-phone':        localStorage.getItem('unit_phone')   || '',
+    'setup-sheet-url':    localStorage.getItem('budget_sheet_url') || googleSheetUrl || ''
+  };
+  Object.entries(fields).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = val;
+  });
+
+  setupScreen.style.display = 'flex';
+};
+
+/**
+ * Lưu thông tin đơn vị từ màn hình setup vào localStorage
+ */
+window.saveSetupInfo = function() {
+  const unitName  = (document.getElementById('setup-unit-name')?.value    || '').trim();
+  const dept      = (document.getElementById('setup-department')?.value   || '').trim();
+  const contact   = (document.getElementById('setup-contact-name')?.value || '').trim();
+  const phone     = (document.getElementById('setup-phone')?.value        || '').trim();
+  const sheetUrl  = (document.getElementById('setup-sheet-url')?.value    || '').trim();
+
+  if (!unitName) {
+    const el = document.getElementById('setup-unit-name');
+    if (el) { el.style.borderColor = '#ef4444'; el.focus(); }
+    alert('Vui lòng nhập tên đơn vị / bệnh viện!');
+    return;
+  }
+
+  // Lưu vào localStorage
+  if (unitName) localStorage.setItem('unit_name',    unitName);
+  if (dept)     localStorage.setItem('unit_dept',    dept);
+  if (contact)  localStorage.setItem('unit_contact', contact);
+  if (phone)    localStorage.setItem('unit_phone',   phone);
+  if (sheetUrl) {
+    localStorage.setItem('budget_sheet_url', sheetUrl);
+    googleSheetUrl = sheetUrl;
+    setupAutoSync();
+  }
+
+  // Đánh dấu đã thiết lập
+  localStorage.setItem('unit_setup_done', '1');
+
+  // Ẩn màn hình setup
+  const setupScreen = document.getElementById('setup-screen');
+  if (setupScreen) setupScreen.style.display = 'none';
+
+  // Cập nhật lại toàn bộ banner
+  renderUnitBanner();
+
+  // Thông báo thành công
+  const btn = document.getElementById('setup-save-btn');
+  if (btn) {
+    const orig = btn.textContent;
+    btn.textContent = '✅ Đã lưu!';
+    btn.style.background = 'linear-gradient(135deg,#059669,#047857)';
+    setTimeout(() => { btn.textContent = orig; btn.style.background = ''; }, 2000);
+  }
+};
+
+/**
+ * Kiểm tra lần đầu — hiển thị setup screen nếu chưa thiết lập
+ */
+function checkFirstTimeSetup() {
+  const done = localStorage.getItem('unit_setup_done');
+  if (!done) {
+    // Lần đầu sử dụng — hiện setup screen
+    const setupScreen = document.getElementById('setup-screen');
+    if (setupScreen) setupScreen.style.display = 'flex';
+  }
+  // Luôn render banner với giá trị hiện có
+  renderUnitBanner();
+}
+
 function updateSyncStatus(status, text = '') {
   const dot = document.getElementById('header-sync-dot');
   const txt = document.getElementById('header-sync-text');
@@ -1708,6 +1826,10 @@ async function initApp() {
   
   try {
     console.log('Hệ thống đang khởi tạo...');
+
+    // Kiểm tra thiết lập lần đầu & render banner đơn vị
+    checkFirstTimeSetup();
+
     const loginScreen = document.getElementById('login-screen');
     const mainApp = document.getElementById('main-app');
     const loginError = document.getElementById('login-error');

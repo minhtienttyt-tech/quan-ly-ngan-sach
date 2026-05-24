@@ -14,18 +14,71 @@
   <link rel="stylesheet" href="style.css?v=4"/>
 </head>
 <body>
+
+  <!-- ===== SETUP SCREEN (hiện lần đầu hoặc chưa cấu hình đơn vị) ===== -->
+  <div id="setup-screen" style="display:none; height:100vh; width:100vw; position:fixed; top:0; left:0; z-index:9999; background:linear-gradient(135deg,#050d1f 0%,#0f2248 60%,#051525 100%); align-items:center; justify-content:center; flex-direction:column; padding:16px; box-sizing:border-box;">
+    <div style="max-width:480px; width:100%;">
+      <!-- Header -->
+      <div style="text-align:center; margin-bottom:28px;">
+        <div style="font-size:48px; margin-bottom:8px;">🏥</div>
+        <h2 style="color:#f0f9ff; font-size:20px; font-weight:700; margin:0 0 6px;">Thiết lập thông tin đơn vị</h2>
+        <p style="color:#64748b; font-size:13px; margin:0;">Chỉ cần thực hiện <strong style="color:#60a5fa;">một lần duy nhất</strong> — hệ thống sẽ ghi nhớ</p>
+      </div>
+      <!-- Card -->
+      <div style="background:rgba(15,23,42,0.85); border:1px solid rgba(99,179,237,0.15); border-radius:16px; padding:28px; backdrop-filter:blur(12px); box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+        
+        <!-- Unit name -->
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px;">🏛️ Tên đơn vị / Bệnh viện</label>
+          <input id="setup-unit-name" type="text" placeholder="VD: Bệnh viện đa khoa Than Uyên" style="width:100%; padding:11px 14px; background:#0f172a; border:1px solid #1e3a5f; border-radius:8px; color:#f1f5f9; font-size:14px; box-sizing:border-box; outline:none;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#1e3a5f'">
+        </div>
+        
+        <!-- Department -->
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px;">🏢 Phòng / Khoa quản lý</label>
+          <input id="setup-department" type="text" placeholder="VD: Phòng KH-TC-ĐD" style="width:100%; padding:11px 14px; background:#0f172a; border:1px solid #1e3a5f; border-radius:8px; color:#f1f5f9; font-size:14px; box-sizing:border-box; outline:none;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#1e3a5f'">
+        </div>
+        
+        <!-- Contact person -->
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px;">👤 Tên người phụ trách</label>
+          <input id="setup-contact-name" type="text" placeholder="VD: Nguyễn Văn A" style="width:100%; padding:11px 14px; background:#0f172a; border:1px solid #1e3a5f; border-radius:8px; color:#f1f5f9; font-size:14px; box-sizing:border-box; outline:none;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#1e3a5f'">
+        </div>
+        
+        <!-- Phone -->
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px;">📞 Số điện thoại</label>
+          <input id="setup-phone" type="tel" placeholder="VD: 0975198657" style="width:100%; padding:11px 14px; background:#0f172a; border:1px solid #1e3a5f; border-radius:8px; color:#f1f5f9; font-size:14px; box-sizing:border-box; outline:none;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#1e3a5f'">
+        </div>
+        
+        <!-- Sheet URL -->
+        <div style="margin-bottom:24px;">
+          <label style="display:block; font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px;">🔗 URL Google Apps Script Web App</label>
+          <input id="setup-sheet-url" type="url" placeholder="https://script.google.com/macros/s/..." style="width:100%; padding:11px 14px; background:#0f172a; border:1px solid #1e3a5f; border-radius:8px; color:#f1f5f9; font-size:13px; box-sizing:border-box; outline:none;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#1e3a5f'">
+          <p style="font-size:11px; color:#475569; margin:6px 0 0;">⚠️ Bỏ trống nếu chưa có — có thể cập nhật sau trong Cấu hình bộ nhớ</p>
+        </div>
+        
+        <!-- Save button -->
+        <button id="setup-save-btn" onclick="window.saveSetupInfo()" style="width:100%; padding:14px; background:linear-gradient(135deg,#2563eb,#1d4ed8); color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; letter-spacing:0.3px; transition:opacity 0.2s; box-shadow:0 4px 20px rgba(37,99,235,0.4);" onmouseover="this.style.opacity=0.9" onmouseout="this.style.opacity=1">✅ Lưu và bắt đầu sử dụng</button>
+        
+        <p style="text-align:center; font-size:11px; color:#334155; margin:12px 0 0;">Thông tin được lưu trong trình duyệt của bạn, không gửi lên mạng</p>
+      </div>
+    </div>
+  </div>
+
   <div id="login-screen" style="height: 100vh; width: 100vw; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, #0a0f1e 0%, #0f2248 50%, #0a1628 100%); gap: 0; padding: 16px; box-sizing: border-box;">
-    <!-- Login Hero Banner -->
-    <div style="display:flex; align-items:center; gap:20px; margin-bottom:24px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius:16px; padding:18px 28px; max-width:460px; width:100%; backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
-      <img src="hospital-logo.png" alt="Logo Bệnh viện Đa khoa Than Uyên" style="width:72px; height:72px; border-radius:50%; object-fit:cover; border:2px solid rgba(99,179,237,0.4); box-shadow: 0 0 20px rgba(66,153,225,0.3); flex-shrink:0;">
+    <!-- Login Hero Banner (rendered dynamically by JS) -->
+    <div id="login-hero-banner" style="display:flex; align-items:center; gap:20px; margin-bottom:24px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius:16px; padding:18px 28px; max-width:460px; width:100%; backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+      <img id="login-hero-logo" src="hospital-logo.png" alt="Logo đơn vị" style="width:72px; height:72px; border-radius:50%; object-fit:cover; border:2px solid rgba(99,179,237,0.4); box-shadow: 0 0 20px rgba(66,153,225,0.3); flex-shrink:0;">
       <div style="flex:1; min-width:0;">
-        <div style="font-size:15px; font-weight:700; color:#f0f9ff; letter-spacing:0.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Phạm Minh Tiến</div>
-        <div style="font-size:12px; color:#60a5fa; font-weight:500; margin-top:2px;">Phòng KH-TC-ĐD</div>
-        <div style="font-size:11px; color:#94a3b8; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Bệnh viện đa khoa Than Uyên</div>
+        <div id="login-hero-name" style="font-size:15px; font-weight:700; color:#f0f9ff; letter-spacing:0.3px;">Phạm Minh Tiến</div>
+        <div id="login-hero-dept" style="font-size:12px; color:#60a5fa; font-weight:500; margin-top:2px;">Phòng KH-TC-ĐD</div>
+        <div id="login-hero-unit" style="font-size:11px; color:#94a3b8; margin-top:2px;">Bệnh viện đa khoa Than Uyên</div>
         <div style="display:flex; align-items:center; gap:5px; margin-top:6px;">
           <span style="font-size:13px;">📞</span>
-          <a href="tel:0975198657" style="font-size:13px; color:#34d399; font-weight:600; text-decoration:none; letter-spacing:0.5px;">0975 198 657</a>
+          <a id="login-hero-phone" href="tel:0975198657" style="font-size:13px; color:#34d399; font-weight:600; text-decoration:none; letter-spacing:0.5px;">0975 198 657</a>
         </div>
+        <button onclick="window.openSetupScreen()" style="margin-top:8px; font-size:10px; color:#475569; background:transparent; border:1px solid #1e3a5f; border-radius:4px; padding:2px 8px; cursor:pointer;">✏️ Sửa thông tin đơn vị</button>
       </div>
     </div>
     <div class="login-card" style="background: rgba(30,41,59,0.9); padding: 32px; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 400px; text-align: center; backdrop-filter: blur(10px);">
@@ -49,6 +102,7 @@
 
     </div>
   </div>
+
 
   <div id="main-app" style="display:none;">
     <div id="app">
@@ -109,14 +163,14 @@
           <span>Cấu hình bộ nhớ</span>
         </a>
       </nav>
-      <!-- Contact card in sidebar -->
+      <!-- Contact card in sidebar (dynamic) -->
       <div style="margin: 0 10px 12px; padding: 10px 12px; background: linear-gradient(135deg, rgba(37,99,235,0.15), rgba(16,185,129,0.1)); border: 1px solid rgba(99,179,237,0.2); border-radius: 10px;">
         <div style="display:flex; align-items:center; gap:8px;">
-          <img src="hospital-logo.png" alt="" style="width:32px; height:32px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid rgba(99,179,237,0.3);">
+          <img id="sidebar-contact-logo" src="hospital-logo.png" alt="" style="width:32px; height:32px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid rgba(99,179,237,0.3);">
           <div style="min-width:0; flex:1;">
-            <div style="font-size:11px; font-weight:700; color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Phạm Minh Tiến</div>
-            <div style="font-size:9px; color:#60a5fa; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Phòng KH-TC-ĐD · BV Than Uyên</div>
-            <div style="font-size:10px; color:#34d399; font-weight:600; margin-top:1px;">📞 0975 198 657</div>
+            <div id="sidebar-contact-name" style="font-size:11px; font-weight:700; color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Phạm Minh Tiến</div>
+            <div id="sidebar-contact-dept" style="font-size:9px; color:#60a5fa; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Phòng KH-TC-ĐD · BV Than Uyên</div>
+            <div id="sidebar-contact-phone" style="font-size:10px; color:#34d399; font-weight:600; margin-top:1px;">📞 0975 198 657</div>
           </div>
         </div>
       </div>
