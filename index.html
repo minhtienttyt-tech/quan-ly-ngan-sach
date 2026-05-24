@@ -16,8 +16,8 @@
 <body>
 
   <!-- ===== SETUP SCREEN (hiện lần đầu hoặc chưa cấu hình đơn vị) ===== -->
-  <div id="setup-screen" style="display:none; height:100vh; width:100vw; position:fixed; top:0; left:0; z-index:9999; background:linear-gradient(135deg,#050d1f 0%,#0f2248 60%,#051525 100%); align-items:center; justify-content:center; flex-direction:column; padding:16px; box-sizing:border-box;">
-    <div style="max-width:480px; width:100%;">
+  <div id="setup-screen" style="display:none; min-height:100vh; width:100vw; position:fixed; top:0; left:0; z-index:9999; background:linear-gradient(135deg,#050d1f 0%,#0f2248 60%,#051525 100%); align-items:flex-start; justify-content:center; flex-direction:column; padding:24px 16px; box-sizing:border-box; overflow-y:auto;">
+    <div style="max-width:480px; width:100%; margin:0 auto;">
       <!-- Header -->
       <div style="text-align:center; margin-bottom:28px;">
         <div style="font-size:48px; margin-bottom:8px;">🏥</div>
@@ -52,10 +52,83 @@
         </div>
         
         <!-- Sheet URL -->
-        <div style="margin-bottom:24px;">
+        <div style="margin-bottom:20px;">
           <label style="display:block; font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px;">🔗 URL Google Apps Script Web App</label>
           <input id="setup-sheet-url" type="url" placeholder="https://script.google.com/macros/s/..." style="width:100%; padding:11px 14px; background:#0f172a; border:1px solid #1e3a5f; border-radius:8px; color:#f1f5f9; font-size:13px; box-sizing:border-box; outline:none;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#1e3a5f'">
           <p style="font-size:11px; color:#475569; margin:6px 0 0;">⚠️ Bỏ trống nếu chưa có — có thể cập nhật sau trong Cấu hình bộ nhớ</p>
+        </div>
+
+        <!-- Divider -->
+        <div style="display:flex; align-items:center; gap:10px; margin:20px 0 18px;">
+          <div style="flex:1; height:1px; background:rgba(99,179,237,0.15);"></div>
+          <span style="font-size:11px; color:#475569; white-space:nowrap; font-weight:600; letter-spacing:0.5px;">🔐 CÀI ĐẶT TÀI KHOẢN ĐĂNG NHẬP</span>
+          <div style="flex:1; height:1px; background:rgba(99,179,237,0.15);"></div>
+        </div>
+
+        <!-- Admin credentials -->
+        <div style="background:linear-gradient(135deg,rgba(37,99,235,0.12),rgba(37,99,235,0.05)); border:1px solid rgba(99,179,237,0.25); border-radius:10px; padding:14px; margin-bottom:14px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+            <span style="font-size:16px;">👑</span>
+            <div>
+              <div style="font-size:12px; font-weight:700; color:#60a5fa; text-transform:uppercase; letter-spacing:0.5px;">Tài khoản Admin</div>
+              <div style="font-size:10px; color:#475569; margin-top:1px;">Toàn quyền: xem, thêm, sửa, xóa, đồng bộ, xuất báo cáo, cấu hình</div>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+              <label style="display:block; font-size:10px; font-weight:600; color:#64748b; text-transform:uppercase; margin-bottom:4px;">Tên đăng nhập</label>
+              <input id="setup-admin-user" type="text" placeholder="admin" autocomplete="off" style="width:100%; padding:9px 12px; background:#0f172a; border:1px solid #1e3a5f; border-radius:7px; color:#f1f5f9; font-size:13px; box-sizing:border-box; outline:none;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#1e3a5f'">
+            </div>
+            <div>
+              <label style="display:block; font-size:10px; font-weight:600; color:#64748b; text-transform:uppercase; margin-bottom:4px;">Mật khẩu</label>
+              <div style="position:relative;">
+                <input id="setup-admin-pass" type="password" placeholder="••••••••" autocomplete="new-password" style="width:100%; padding:9px 32px 9px 12px; background:#0f172a; border:1px solid #1e3a5f; border-radius:7px; color:#f1f5f9; font-size:13px; box-sizing:border-box; outline:none;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#1e3a5f'">
+                <span onclick="var i=document.getElementById('setup-admin-pass');i.type=i.type==='password'?'text':'password'" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:14px;color:#475569;">👁</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- User credentials -->
+        <div style="background:linear-gradient(135deg,rgba(16,185,129,0.1),rgba(16,185,129,0.04)); border:1px solid rgba(52,211,153,0.2); border-radius:10px; padding:14px; margin-bottom:20px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+            <span style="font-size:16px;">👤</span>
+            <div>
+              <div style="font-size:12px; font-weight:700; color:#34d399; text-transform:uppercase; letter-spacing:0.5px;">Tài khoản User</div>
+              <div style="font-size:10px; color:#475569; margin-top:1px;">Chỉ xem &amp; xuất báo cáo — không thể thêm, sửa, xóa dữ liệu</div>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+              <label style="display:block; font-size:10px; font-weight:600; color:#64748b; text-transform:uppercase; margin-bottom:4px;">Tên đăng nhập</label>
+              <input id="setup-user-user" type="text" placeholder="user" autocomplete="off" style="width:100%; padding:9px 12px; background:#0f172a; border:1px solid #1e3a5f; border-radius:7px; color:#f1f5f9; font-size:13px; box-sizing:border-box; outline:none;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#1e3a5f'">
+            </div>
+            <div>
+              <label style="display:block; font-size:10px; font-weight:600; color:#64748b; text-transform:uppercase; margin-bottom:4px;">Mật khẩu</label>
+              <div style="position:relative;">
+                <input id="setup-user-pass" type="password" placeholder="••••••••" autocomplete="new-password" style="width:100%; padding:9px 32px 9px 12px; background:#0f172a; border:1px solid #1e3a5f; border-radius:7px; color:#f1f5f9; font-size:13px; box-sizing:border-box; outline:none;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#1e3a5f'">
+                <span onclick="var i=document.getElementById('setup-user-pass');i.type=i.type==='password'?'text':'password'" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:14px;color:#475569;">👁</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Permission summary -->
+        <div style="background:rgba(15,23,42,0.6); border:1px solid #1e293b; border-radius:8px; padding:12px; margin-bottom:20px;">
+          <div style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">📋 Bảng phân quyền</div>
+          <table style="width:100%; border-collapse:collapse; font-size:11px;">
+            <tr style="color:#64748b;">
+              <td style="padding:3px 6px; font-weight:600;">Chức năng</td>
+              <td style="padding:3px 6px; text-align:center; color:#60a5fa; font-weight:700;">👑 Admin</td>
+              <td style="padding:3px 6px; text-align:center; color:#34d399; font-weight:700;">👤 User</td>
+            </tr>
+            <tr style="border-top:1px solid #1e293b;"><td style="padding:4px 6px; color:#94a3b8;">Xem dữ liệu &amp; Dashboard</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td></tr>
+            <tr style="border-top:1px solid #1e293b;"><td style="padding:4px 6px; color:#94a3b8;">Xuất CSV / Excel / PDF</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td></tr>
+            <tr style="border-top:1px solid #1e293b;"><td style="padding:4px 6px; color:#94a3b8;">Lấy dữ liệu từ Sheet</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td></tr>
+            <tr style="border-top:1px solid #1e293b;"><td style="padding:4px 6px; color:#94a3b8;">Thêm / Sửa / Xóa khoản chi</td><td style="text-align:center;">✅</td><td style="text-align:center; color:#ef4444;">❌</td></tr>
+            <tr style="border-top:1px solid #1e293b;"><td style="padding:4px 6px; color:#94a3b8;">Đồng bộ lên Sheet</td><td style="text-align:center;">✅</td><td style="text-align:center; color:#ef4444;">❌</td></tr>
+            <tr style="border-top:1px solid #1e293b;"><td style="padding:4px 6px; color:#94a3b8;">Cấu hình hệ thống</td><td style="text-align:center;">✅</td><td style="text-align:center; color:#ef4444;">❌</td></tr>
+          </table>
         </div>
         
         <!-- Save button -->
@@ -755,8 +828,19 @@
       const err = document.getElementById('login-error');
       if (btn) { btn.disabled = true; btn.innerText = 'Đang xử lý...'; }
       await new Promise(r => setTimeout(r, 500));
-      if ((u === 'admin' && p === 'Minhtien@1986') || (u === 'user' && p === 'user')) {
-        localStorage.setItem('budget_user_role', u === 'admin' ? 'admin' : 'user');
+
+      // Đọc credentials từ localStorage (được cài trong màn hình Setup)
+      const adminUser = (localStorage.getItem('cred_admin_user') || 'admin').toLowerCase();
+      const adminPass = localStorage.getItem('cred_admin_pass') || 'Minhtien@1986';
+      const normalUser = (localStorage.getItem('cred_user_user') || 'user').toLowerCase();
+      const normalPass = localStorage.getItem('cred_user_pass') || 'user';
+
+      let matchedRole = null;
+      if (u === adminUser && p === adminPass) matchedRole = 'admin';
+      else if (u === normalUser && p === normalPass) matchedRole = 'user';
+
+      if (matchedRole) {
+        localStorage.setItem('budget_user_role', matchedRole);
         if (err) err.style.display = 'none';
         window.checkAuth();
         if (window.budgetNavigate) window.budgetNavigate('dashboard');

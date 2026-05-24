@@ -146,7 +146,11 @@ window.openSetupScreen = function() {
     'setup-department':   localStorage.getItem('unit_dept')    || '',
     'setup-contact-name': localStorage.getItem('unit_contact') || '',
     'setup-phone':        localStorage.getItem('unit_phone')   || '',
-    'setup-sheet-url':    localStorage.getItem('budget_sheet_url') || googleSheetUrl || ''
+    'setup-sheet-url':    localStorage.getItem('budget_sheet_url') || googleSheetUrl || '',
+    'setup-admin-user':   localStorage.getItem('cred_admin_user') || 'admin',
+    'setup-admin-pass':   localStorage.getItem('cred_admin_pass') || '',
+    'setup-user-user':    localStorage.getItem('cred_user_user')  || 'user',
+    'setup-user-pass':    localStorage.getItem('cred_user_pass')  || ''
   };
   Object.entries(fields).forEach(([id, val]) => {
     const el = document.getElementById(id);
@@ -160,11 +164,15 @@ window.openSetupScreen = function() {
  * Lưu thông tin đơn vị từ màn hình setup vào localStorage
  */
 window.saveSetupInfo = function() {
-  const unitName  = (document.getElementById('setup-unit-name')?.value    || '').trim();
-  const dept      = (document.getElementById('setup-department')?.value   || '').trim();
-  const contact   = (document.getElementById('setup-contact-name')?.value || '').trim();
-  const phone     = (document.getElementById('setup-phone')?.value        || '').trim();
-  const sheetUrl  = (document.getElementById('setup-sheet-url')?.value    || '').trim();
+  const unitName   = (document.getElementById('setup-unit-name')?.value    || '').trim();
+  const dept       = (document.getElementById('setup-department')?.value   || '').trim();
+  const contact    = (document.getElementById('setup-contact-name')?.value || '').trim();
+  const phone      = (document.getElementById('setup-phone')?.value        || '').trim();
+  const sheetUrl   = (document.getElementById('setup-sheet-url')?.value    || '').trim();
+  const adminUser  = (document.getElementById('setup-admin-user')?.value   || '').trim();
+  const adminPass  = (document.getElementById('setup-admin-pass')?.value   || '').trim();
+  const userUser   = (document.getElementById('setup-user-user')?.value    || '').trim();
+  const userPass   = (document.getElementById('setup-user-pass')?.value    || '').trim();
 
   if (!unitName) {
     const el = document.getElementById('setup-unit-name');
@@ -172,12 +180,26 @@ window.saveSetupInfo = function() {
     alert('Vui lòng nhập tên đơn vị / bệnh viện!');
     return;
   }
+  if (adminUser && !adminPass) {
+    const el = document.getElementById('setup-admin-pass');
+    if (el) { el.style.borderColor = '#ef4444'; el.focus(); }
+    alert('Vui lòng nhập mật khẩu cho tài khoản Admin!');
+    return;
+  }
 
-  // Lưu vào localStorage
+  // Lưu thông tin đơn vị
   if (unitName) localStorage.setItem('unit_name',    unitName);
   if (dept)     localStorage.setItem('unit_dept',    dept);
   if (contact)  localStorage.setItem('unit_contact', contact);
   if (phone)    localStorage.setItem('unit_phone',   phone);
+
+  // Lưu tài khoản / mật khẩu
+  if (adminUser) localStorage.setItem('cred_admin_user', adminUser.toLowerCase());
+  if (adminPass) localStorage.setItem('cred_admin_pass', adminPass);
+  if (userUser)  localStorage.setItem('cred_user_user',  userUser.toLowerCase());
+  if (userPass)  localStorage.setItem('cred_user_pass',  userPass);
+
+  // Lưu URL Sheet
   if (sheetUrl) {
     localStorage.setItem('budget_sheet_url', sheetUrl);
     googleSheetUrl = sheetUrl;
