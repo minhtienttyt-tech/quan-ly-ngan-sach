@@ -240,6 +240,41 @@ function checkFirstTimeSetup() {
   renderUnitBanner();
 }
 
+/**
+ * Quản lý giao diện Sáng / Tối
+ */
+function setupTheme() {
+  const currentTheme = localStorage.getItem('budget_theme') || 'dark';
+  
+  function applyTheme(theme) {
+    if (theme === 'light') {
+      document.body.classList.add('theme-light');
+    } else {
+      document.body.classList.remove('theme-light');
+    }
+    
+    // Cập nhật icon trên các nút toggle
+    const icon = theme === 'light' ? '🌙' : '☀️';
+    const btn1 = document.getElementById('themeToggle');
+    const btn2 = document.getElementById('themeToggleLogin');
+    if (btn1) btn1.textContent = icon;
+    if (btn2) btn2.textContent = icon;
+  }
+  
+  applyTheme(currentTheme);
+  
+  function toggleTheme() {
+    const newTheme = document.body.classList.contains('theme-light') ? 'dark' : 'light';
+    localStorage.setItem('budget_theme', newTheme);
+    applyTheme(newTheme);
+  }
+  
+  const btn1 = document.getElementById('themeToggle');
+  const btn2 = document.getElementById('themeToggleLogin');
+  if (btn1) btn1.addEventListener('click', toggleTheme);
+  if (btn2) btn2.addEventListener('click', toggleTheme);
+}
+
 function updateSyncStatus(status, text = '') {
   const dot = document.getElementById('header-sync-dot');
   const txt = document.getElementById('header-sync-text');
@@ -1851,6 +1886,9 @@ async function initApp() {
 
     // Kiểm tra thiết lập lần đầu & render banner đơn vị
     checkFirstTimeSetup();
+    
+    // Thiết lập giao diện Sáng / Tối
+    setupTheme();
 
     const loginScreen = document.getElementById('login-screen');
     const mainApp = document.getElementById('main-app');

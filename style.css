@@ -36,6 +36,78 @@
   --transition: 0.2s ease;
 }
 
+/* Light Theme Overrides */
+body.theme-light {
+  --bg-base: #f1f5f9;
+  --bg-surface: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8fafc;
+  --border: #e2e8f0;
+  --border-light: #cbd5e1;
+
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+
+  --blue-light: #2563eb;
+  --green-light: #059669;
+  --orange-light: #d97706;
+  --red-light: #dc2626;
+
+  --blue-glow: rgba(59,130,246,0.15);
+  --green-glow: rgba(16,185,129,0.1);
+  --orange-glow: rgba(245,158,11,0.1);
+  --red-glow: rgba(239,68,68,0.1);
+
+  --shadow: 0 4px 15px rgba(0,0,0,0.05);
+  --shadow-sm: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+body.theme-light .card,
+body.theme-light .login-card {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid var(--border) !important;
+}
+body.theme-light .budget-table tbody tr { border-bottom: 1px solid var(--border); }
+body.theme-light .row-parent-content td { background: rgba(0, 0, 0, 0.02) !important; }
+body.theme-light .row-content-total td { background: rgba(0, 0, 0, 0.01) !important; border-bottom: 1px dashed var(--border); }
+body.theme-light .row-subtotal { background: rgba(0, 0, 0, 0.02) !important; }
+body.theme-light .spinner { border-color: rgba(0, 0, 0, 0.1); border-top-color: var(--blue); }
+body.theme-light .btn-secondary {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: var(--text-primary);
+}
+body.theme-light .btn-secondary:hover { background: rgba(0, 0, 0, 0.06); }
+
+/* Login / Setup specific overrides */
+body.theme-light #login-screen,
+body.theme-light #setup-screen {
+  background: linear-gradient(135deg, #e2e8f0 0%, #f8fafc 50%, #e2e8f0 100%) !important;
+}
+body.theme-light #login-hero-banner,
+body.theme-light #setup-screen > div > div:nth-child(2) {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(0,0,0,0.1) !important;
+}
+body.theme-light #login-screen h2,
+body.theme-light #setup-screen h2 { color: #1e293b !important; }
+body.theme-light #login-screen p,
+body.theme-light #setup-screen p { color: #475569 !important; }
+body.theme-light #login-screen label,
+body.theme-light #setup-screen label { color: #334155 !important; }
+body.theme-light #login-screen input,
+body.theme-light #setup-screen input {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #1e293b !important;
+}
+body.theme-light #themeToggleLogin {
+  border-color: rgba(0,0,0,0.2) !important;
+  color: #1e293b !important;
+}
+
+
 html { font-family: 'Inter', sans-serif; font-size: 14px; }
 body { background: var(--bg-base); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; }
 
