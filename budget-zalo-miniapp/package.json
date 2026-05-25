@@ -1,0 +1,13 @@
+{
+  "name": "budget-zalo-miniapp",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "zmp start",
+    "deploy": "zmp deploy"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "vite": "^4.0.0"
+  }
+}
