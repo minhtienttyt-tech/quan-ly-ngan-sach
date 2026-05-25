@@ -230,12 +230,8 @@ window.saveSetupInfo = function() {
  * Kiểm tra lần đầu — hiển thị setup screen nếu chưa thiết lập
  */
 function checkFirstTimeSetup() {
-  const done = localStorage.getItem('unit_setup_done');
-  if (!done) {
-    // Lần đầu sử dụng — hiện setup screen
-    const setupScreen = document.getElementById('setup-screen');
-    if (setupScreen) setupScreen.style.display = 'flex';
-  }
+  // Removed forced setup screen on first use per user request.
+  // Setup can still be opened manually via "Sửa thông tin đơn vị" button.
   // Luôn render banner với giá trị hiện có
   renderUnitBanner();
 }
