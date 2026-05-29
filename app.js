@@ -800,7 +800,7 @@ function renderTable(){
     if (groupItems.length === 0) return;
 
     // Nhóm Header
-    html += `<tr class="row-group-header"><td colspan="15" style="padding-left:12px">${gIdx + 1}. ${g}</td></tr>`;
+    html += `<tr class="row-group-header"><td colspan="17" style="padding-left:12px">${gIdx + 1}. ${g}</td></tr>`;
 
     let groupAlloc = 0, groupUsed = 0;
     
@@ -848,6 +848,7 @@ function renderTable(){
           <td class="td-number highlight col-kpduocsd">${kpDuoc ? fmt(kpDuoc) : '-'}</td>
           <td class="td-number used col-kpdadung">${r.daDung ? fmt(r.daDung) : '-'}</td>
           <td class="td-number remaining ${conLaiCls} col-kpconlai">${isDetail ? '-' : fmt(conLai)}</td>
+          <td class="td-number col-percent" style="text-align:center; font-weight:600; color: ${kpDuoc ? (r.daDung/kpDuoc > 0.8 ? (r.daDung/kpDuoc > 1 ? 'var(--red)' : 'var(--orange)') : 'var(--text-primary)') : 'inherit'}">${isDetail ? '-' : (kpDuoc ? (r.daDung / kpDuoc * 100).toFixed(1) + '%' : '0.0%')}</td>
           <td style="text-align:center">${isDetail ? '-' : statusBadge(r)}</td>
           <td style="text-align:center;font-size:11px;color:var(--text-muted)">${r.hanDate || '-'}</td>
           <td style="text-align:center" class="role-admin-only">
@@ -871,6 +872,7 @@ function renderTable(){
           <td class="td-number col-kpduocsd" style="font-weight: 600; font-size: 12px">${fmt(subAlloc)}</td>
           <td class="td-number col-kpdadung" style="font-weight: 600; font-size: 12px; color: var(--green)">${fmt(subUsed)}</td>
           <td class="td-number col-kpconlai" style="font-weight: 600; font-size: 12px; color: ${subRemain < 0 ? 'var(--red)' : 'var(--text-primary)'}">${fmt(subRemain)}</td>
+          <td class="td-number col-percent" style="font-weight: 600; text-align:center">${subAlloc ? (subUsed/subAlloc*100).toFixed(1)+'%' : '0.0%'}</td>
           <td colspan="3"></td>
         </tr>`;
       }
@@ -892,6 +894,7 @@ function renderTable(){
       <td class="td-number highlight col-kpduocsd">${fmt(groupAlloc)}</td>
       <td class="td-number used col-kpdadung">${fmt(groupUsed)}</td>
       <td class="td-number remaining ${groupRemain < 0 ? 'danger' : 'ok'} col-kpconlai">${fmt(groupRemain)}</td>
+      <td class="td-number col-percent" style="font-weight:600; text-align:center">${groupAlloc ? (groupUsed/groupAlloc*100).toFixed(1)+'%' : '0.0%'}</td>
       <td colspan="2"></td><td class="role-admin-only"></td>
     </tr>`;
 
@@ -902,7 +905,7 @@ function renderTable(){
   // Tổng cộng cuối bảng
   const globalRemain = globalAlloc - globalUsed;
   html += `<tr class="row-total">
-    <td colspan="3" style="text-align:right;padding-right:12px; font-weight: bold">TỔNG CỘNG (I + II)</td>
+    <td colspan="4" style="text-align:right;padding-right:12px; font-weight: bold">TỔNG CỘNG (I + II)</td>
     <td class="td-number col-dtcapnam">${fmt(data.reduce((s,r)=>s+(+r.dtCapNam||0),0))}</td>
     <td class="td-number col-tonnamtruoc">${fmt(data.reduce((s,r)=>s+(+r.tonNamTruoc||0),0))}</td>
     <td class="td-number col-kpcapnam">${fmt(data.reduce((s,r)=>s+(+r.kpCapNam||0),0))}</td>
@@ -912,6 +915,7 @@ function renderTable(){
     <td class="td-number highlight col-kpduocsd">${fmt(globalAlloc)}</td>
     <td class="td-number used col-kpdadung">${fmt(globalUsed)}</td>
     <td class="td-number remaining ${globalRemain < 0 ? 'danger' : 'ok'} col-kpconlai">${fmt(globalRemain)}</td>
+    <td class="td-number col-percent" style="font-weight:bold; text-align:center">${globalAlloc ? (globalUsed/globalAlloc*100).toFixed(1)+'%' : '0.0%'}</td>
     <td colspan="2"></td><td class="role-admin-only"></td>
   </tr>`;
 

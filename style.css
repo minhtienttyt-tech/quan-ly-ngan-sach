@@ -402,6 +402,7 @@ body { background: var(--bg-base); color: var(--text-primary); min-height: 100vh
 .th-noidung { min-width: 220px; text-align: left; }
 .th-number { width: 110px; text-align: right; }
 .th-status { width: 100px; text-align: center; }
+.th-percent { width: 80px; text-align: center; }
 .th-date { width: 90px; text-align: center; }
 .th-action { width: 80px; text-align: center; }
 
