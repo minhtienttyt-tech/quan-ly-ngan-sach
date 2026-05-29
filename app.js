@@ -815,10 +815,15 @@ function renderTable(){
       const subItems = contentGroups[contentName];
       let subAlloc = 0, subUsed = 0;
 
-      // Sort: Allocation rows (dtCapNam > 0) should come first
-      subItems.sort((a, b) => (b.dtCapNam || 0) - (a.dtCapNam || 0));
-
-      subItems.forEach(r => {
+      // Sort: Allocation rows (dtCapNam > 0) should come first, then sort by tieumuc ascending
+      subItems.sort((a, b) => {
+        const capDiff = (b.dtCapNam || 0) - (a.dtCapNam || 0);
+        if (capDiff !== 0) return capDiff;
+        const tA = String(a.tieumuc || '');
+        const tB = String(b.tieumuc || '');
+        // Sort numerically if possible, otherwise alphabetically
+        return tA.localeCompare(tB, undefined, { numeric: true });
+      });
         const kpDuoc = calcKpDuocSD(r);
         const conLai = calcConLai(r);
         const isDetail = !!(r.muc || r.tieumuc);
