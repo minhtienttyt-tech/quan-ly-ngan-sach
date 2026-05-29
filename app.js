@@ -1968,8 +1968,12 @@ async function initApp() {
       };
 
       menuToggle.addEventListener('click', () => {
-        sidebar.classList.toggle('open');
-        updateCloseBtnVisibility();
+        if (window.innerWidth > 768) {
+          document.body.classList.toggle('sidebar-collapsed');
+        } else {
+          sidebar.classList.toggle('open');
+          updateCloseBtnVisibility();
+        }
       });
 
       document.querySelectorAll('.nav-item').forEach(el => {
