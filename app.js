@@ -743,17 +743,19 @@ function renderDashboard(){
   bar.className='progress-bar-fill'+(pct>=100?' danger':pct>=80?' warning':'');
   document.getElementById('overall-pct-label').textContent=pct.toFixed(1)+'%';
   // breakdown
-  const groups=['KP THƯỜNG XUYÊN','KP KHÔNG THƯỜNG XUYÊN'];
-  const colors=['#3b82f6','#10b981'];
-  let bd='';
-  groups.forEach((g,i)=>{
-    const gd=data.filter(r=>r.group===g);
-    const ga=gd.reduce((s,r)=>s+calcKpDuocSD(r),0);
-    const gu=gd.reduce((s,r)=>s+(+r.daDung||0),0);
-    const gp=ga>0?Math.min(100,gu/ga*100):0;
-    bd+=`<div class="breakdown-item">
-      <div class="breakdown-header"><span class="breakdown-name">${g}</span><span class="breakdown-pct" style="color:${colors[i]}">${gp.toFixed(1)}%</span></div>
-      <div class="breakdown-bar-bg"><div class="breakdown-bar-fill" style="width:${gp.toFixed(1)}%;background:${colors[i]}"></div></div>
+  const uniqueManganh = [...new Set(data.map(r => r.manganh || 'Chưa phân ngành'))].sort();
+  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f43f5e'];
+  let bd = '';
+  uniqueManganh.forEach((manganh, i) => {
+    const gd = data.filter(r => (r.manganh || 'Chưa phân ngành') === manganh);
+    const ga = gd.reduce((s, r) => s + calcKpDuocSD(r), 0);
+    const gu = gd.reduce((s, r) => s + (+r.daDung || 0), 0);
+    const gp = ga > 0 ? Math.min(100, gu / ga * 100) : 0;
+    const color = colors[i % colors.length];
+    
+    bd += `<div class="breakdown-item">
+      <div class="breakdown-header"><span class="breakdown-name">Mã ngành: ${manganh}</span><span class="breakdown-pct" style="color:${color}">${gp.toFixed(1)}%</span></div>
+      <div class="breakdown-bar-bg"><div class="breakdown-bar-fill" style="width:${gp.toFixed(1)}%;background:${color}"></div></div>
       <div class="breakdown-values"><span>Đã dùng: ${fmt(gu)}</span><span>Còn lại: ${fmt(ga-gu)}</span></div>
     </div>`;
   });
@@ -790,17 +792,31 @@ function getFiltered(){
 function renderTable(){
   const allFiltered = getFiltered();
   const data = allFiltered.filter(r => !r.isGroupHeader);
+  const uniqueManganh = [...new Set(data.map(r => r.manganh || 'Chưa phân ngành'))].sort();
   const groups = ['KP THƯỜNG XUYÊN', 'KP KHÔNG THƯỜNG XUYÊN'];
   
   let html = '';
   let globalAlloc = 0, globalUsed = 0;
+  const roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 
-  groups.forEach((g, gIdx) => {
-    const groupItems = data.filter(r => r.group === g);
-    if (groupItems.length === 0) return;
+  uniqueManganh.forEach((manganh, mIdx) => {
+    const manganhItems = data.filter(r => (r.manganh || 'Chưa phân ngành') === manganh);
+    if (manganhItems.length === 0) return;
 
-    // Nhóm Header
-    html += `<tr class="row-group-header"><td colspan="17" style="padding-left:12px">${gIdx + 1}. ${g}</td></tr>`;
+    let manganhAlloc = 0, manganhUsed = 0;
+    const rNum = roman[mIdx] || (mIdx + 1);
+
+    // Header for Mã ngành KT
+    html += `<tr class="row-group-header" style="background: linear-gradient(90deg, rgba(16,185,129,0.15), transparent) !important"><td colspan="17" style="padding-left:12px; color: var(--green-light) !important; font-size: 14px">${rNum}. Mã ngành KT: ${manganh}</td></tr>`;
+
+    let globalIdx = 1;
+
+    groups.forEach((g, gIdx) => {
+      const groupItems = manganhItems.filter(r => r.group === g);
+      if (groupItems.length === 0) return;
+
+      // Nhóm Header
+      html += `<tr class="row-sub-header" style="background: rgba(255,255,255,0.02)"><td colspan="17" style="padding-left:24px">${globalIdx++}. ${g}</td></tr>`;
 
     let groupAlloc = 0, groupUsed = 0;
     
@@ -898,8 +914,29 @@ function renderTable(){
       <td colspan="2"></td><td class="role-admin-only"></td>
     </tr>`;
 
-    globalAlloc += groupAlloc;
-    globalUsed += groupUsed;
+      manganhAlloc += groupAlloc;
+      manganhUsed += groupUsed;
+    });
+
+    // Cộng Mã ngành
+    const manganhRemain = manganhAlloc - manganhUsed;
+    html += `<tr class="row-subtotal" style="background: rgba(16,185,129,0.05) !important">
+      <td colspan="4" style="text-align:right;padding-right:12px; font-weight: bold; color: var(--green-light)">CỘNG MÃ NGÀNH ${manganh}</td>
+      <td class="td-number col-dtcapnam">${fmt(manganhItems.reduce((s,r)=>s+(+r.dtCapNam||0),0))}</td>
+      <td class="td-number col-tonnamtruoc">${fmt(manganhItems.reduce((s,r)=>s+(+r.tonNamTruoc||0),0))}</td>
+      <td class="td-number col-kpcapnam">${fmt(manganhItems.reduce((s,r)=>s+(+r.kpCapNam||0),0))}</td>
+      <td class="td-number col-giamdt">${fmt(manganhItems.reduce((s,r)=>s+(+r.giamDT||0),0))}</td>
+      <td class="td-number col-tangdt">${fmt(manganhItems.reduce((s,r)=>s+(+r.tangDT||0),0))}</td>
+      <td class="td-number col-giulai10">${fmt(manganhItems.reduce((s,r)=>s+(+r.giuLai10||0),0))}</td>
+      <td class="td-number highlight col-kpduocsd">${fmt(manganhAlloc)}</td>
+      <td class="td-number used col-kpdadung">${fmt(manganhUsed)}</td>
+      <td class="td-number remaining ${manganhRemain < 0 ? 'danger' : 'ok'} col-kpconlai">${fmt(manganhRemain)}</td>
+      <td class="td-number col-percent" style="font-weight:bold; text-align:center">${manganhAlloc ? (manganhUsed/manganhAlloc*100).toFixed(1)+'%' : '0.0%'}</td>
+      <td colspan="2"></td><td class="role-admin-only"></td>
+    </tr>`;
+
+    globalAlloc += manganhAlloc;
+    globalUsed += manganhUsed;
   });
 
   // Tổng cộng cuối bảng
