@@ -824,6 +824,8 @@ function renderTable(){
         // Sort numerically if possible, otherwise alphabetically
         return tA.localeCompare(tB, undefined, { numeric: true });
       });
+
+      subItems.forEach(r => {
         const kpDuoc = calcKpDuocSD(r);
         const conLai = calcConLai(r);
         const isDetail = !!(r.muc || r.tieumuc);
