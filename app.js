@@ -800,7 +800,7 @@ function renderTable(){
     if (groupItems.length === 0) return;
 
     // Nhóm Header
-    html += `<tr class="row-group-header"><td colspan="14" style="padding-left:12px">${gIdx + 1}. ${g}</td></tr>`;
+    html += `<tr class="row-group-header"><td colspan="15" style="padding-left:12px">${gIdx + 1}. ${g}</td></tr>`;
 
     let groupAlloc = 0, groupUsed = 0;
     
@@ -837,6 +837,7 @@ function renderTable(){
         html += `<tr class="${r.dtCapNam > 0 ? 'row-parent-content' : ''}">
           <td class="td-muc">${r.muc || ''}</td>
           <td class="td-tieumuc">${r.tieumuc || ''}</td>
+          <td class="td-manganh">${r.manganh || ''}</td>
           <td class="td-noidung${r.muc || r.tieumuc ? ' indent' : ''}">${r.noidung}</td>
           <td class="td-number col-dtcapnam">${r.dtCapNam ? fmt(r.dtCapNam) : '-'}</td>
           <td class="td-number col-tonnamtruoc">${r.tonNamTruoc ? fmt(r.tonNamTruoc) : '-'}</td>
@@ -860,7 +861,7 @@ function renderTable(){
       if (subItems.length > 1 || (subItems.length === 1 && subItems[0].dtCapNam > 0)) {
         const subRemain = subAlloc - subUsed;
         html += `<tr class="row-content-total">
-          <td colspan="3" style="text-align:right;padding-right:12px; font-style: italic; font-size: 12px; color: var(--text-muted)">Tổng: ${contentName.substring(0, 30)}${contentName.length > 30 ? '...' : ''}</td>
+          <td colspan="4" style="text-align:right;padding-right:12px; font-style: italic; font-size: 12px; color: var(--text-muted)">Tổng: ${contentName.substring(0, 30)}${contentName.length > 30 ? '...' : ''}</td>
           <td class="td-number col-dtcapnam" style="font-size: 11px; color: var(--text-muted)">${fmt(subItems.reduce((s,r)=>s+(+r.dtCapNam||0),0))}</td>
           <td class="td-number col-tonnamtruoc" style="font-size: 11px; color: var(--text-muted)">${fmt(subItems.reduce((s,r)=>s+(+r.tonNamTruoc||0),0))}</td>
           <td class="td-number col-kpcapnam" style="font-size: 11px; color: var(--text-muted)">${fmt(subItems.reduce((s,r)=>s+(+r.kpCapNam||0),0))}</td>
@@ -881,7 +882,7 @@ function renderTable(){
     // Cộng nhóm
     const groupRemain = groupAlloc - groupUsed;
     html += `<tr class="row-subtotal">
-      <td colspan="3" style="text-align:right;padding-right:12px; font-weight: 600">Cộng ${g}</td>
+      <td colspan="4" style="text-align:right;padding-right:12px; font-weight: 600">Cộng ${g}</td>
       <td class="td-number col-dtcapnam">${fmt(groupItems.reduce((s,r)=>s+(+r.dtCapNam||0),0))}</td>
       <td class="td-number col-tonnamtruoc">${fmt(groupItems.reduce((s,r)=>s+(+r.tonNamTruoc||0),0))}</td>
       <td class="td-number col-kpcapnam">${fmt(groupItems.reduce((s,r)=>s+(+r.kpCapNam||0),0))}</td>
@@ -1008,6 +1009,7 @@ function startEdit(id){
   document.getElementById('f-group').value=r.group||'';
   document.getElementById('f-muc').value=r.muc||'';
   document.getElementById('f-tieumuc').value=r.tieumuc||'';
+  document.getElementById('f-manganh').value=r.manganh||'';
   document.getElementById('f-noidung').value=r.noidung||'';
   document.getElementById('f-dtcapnam').value=r.dtCapNam||'';
   document.getElementById('f-tonnuoctruoc').value=r.tonNamTruoc||'';
@@ -2154,6 +2156,7 @@ async function initApp() {
           group: document.getElementById('f-group').value,
           muc: document.getElementById('f-muc').value,
           tieumuc: document.getElementById('f-tieumuc').value,
+          manganh: document.getElementById('f-manganh').value,
           noidung: document.getElementById('f-noidung').value,
           dtCapNam: +document.getElementById('f-dtcapnam').value || 0,
           tonNamTruoc: +document.getElementById('f-tonnuoctruoc').value || 0,
