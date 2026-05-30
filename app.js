@@ -3,7 +3,7 @@
 // ===== DATA =====
 const fmt=n=>n==null||n===''?'':Number(n).toLocaleString('vi-VN');
 const fmtM=n=>n==null||n===''?'':Number(n).toLocaleString('vi-VN');
-function calcKpDuocSD(r){return(+r.dtCapNam||0)+(+r.tonNamTruoc||0)+(+r.kpCapNam||0)-(+r.giamDT||0)+(+r.tangDT||0)-(+r.giuLai10||0);}
+function calcKpDuocSD(r){return(+r.dtCapNam||0)+(+r.tonNamTruoc||0)+(+r.kpCapNam||0)-(+r.giamDT||0)+(+r.tangDT||0)-(+r.giuLai10||0)-(+r.tietKiem5||0);}
 function calcConLai(r){return calcKpDuocSD(r)-(+r.daDung||0);}
 function getStatus(r){
   const total=calcKpDuocSD(r);
@@ -861,6 +861,7 @@ function renderTable(){
           <td class="td-number col-giamdt">${r.giamDT ? fmt(r.giamDT) : '-'}</td>
           <td class="td-number col-tangdt">${r.tangDT ? fmt(r.tangDT) : '-'}</td>
           <td class="td-number col-giulai10">${r.giuLai10 ? fmt(r.giuLai10) : '-'}</td>
+          <td class="td-number col-tietkiem5">${r.tietKiem5 ? fmt(r.tietKiem5) : '-'}</td>
           <td class="td-number highlight col-kpduocsd">${kpDuoc ? fmt(kpDuoc) : '-'}</td>
           <td class="td-number used col-kpdadung">${r.daDung ? fmt(r.daDung) : '-'}</td>
           <td class="td-number remaining ${conLaiCls} col-kpconlai">${isDetail ? '-' : fmt(conLai)}</td>
@@ -885,6 +886,7 @@ function renderTable(){
           <td class="td-number col-giamdt" style="font-size: 11px; color: var(--text-muted)">${fmt(subItems.reduce((s,r)=>s+(+r.giamDT||0),0))}</td>
           <td class="td-number col-tangdt" style="font-size: 11px; color: var(--text-muted)">${fmt(subItems.reduce((s,r)=>s+(+r.tangDT||0),0))}</td>
           <td class="td-number col-giulai10" style="font-size: 11px; color: var(--text-muted)">${fmt(subItems.reduce((s,r)=>s+(+r.giuLai10||0),0))}</td>
+          <td class="td-number col-tietkiem5" style="font-size: 11px; color: var(--text-muted)">${fmt(subItems.reduce((s,r)=>s+(+r.tietKiem5||0),0))}</td>
           <td class="td-number col-kpduocsd" style="font-weight: 600; font-size: 12px">${fmt(subAlloc)}</td>
           <td class="td-number col-kpdadung" style="font-weight: 600; font-size: 12px; color: var(--green)">${fmt(subUsed)}</td>
           <td class="td-number col-kpconlai" style="font-weight: 600; font-size: 12px; color: ${subRemain < 0 ? 'var(--red)' : 'var(--text-primary)'}">${fmt(subRemain)}</td>
@@ -907,6 +909,7 @@ function renderTable(){
       <td class="td-number col-giamdt">${fmt(groupItems.reduce((s,r)=>s+(+r.giamDT||0),0))}</td>
       <td class="td-number col-tangdt">${fmt(groupItems.reduce((s,r)=>s+(+r.tangDT||0),0))}</td>
       <td class="td-number col-giulai10">${fmt(groupItems.reduce((s,r)=>s+(+r.giuLai10||0),0))}</td>
+      <td class="td-number col-tietkiem5">${fmt(groupItems.reduce((s,r)=>s+(+r.tietKiem5||0),0))}</td>
       <td class="td-number highlight col-kpduocsd">${fmt(groupAlloc)}</td>
       <td class="td-number used col-kpdadung">${fmt(groupUsed)}</td>
       <td class="td-number remaining ${groupRemain < 0 ? 'danger' : 'ok'} col-kpconlai">${fmt(groupRemain)}</td>
@@ -928,6 +931,7 @@ function renderTable(){
       <td class="td-number col-giamdt">${fmt(manganhItems.reduce((s,r)=>s+(+r.giamDT||0),0))}</td>
       <td class="td-number col-tangdt">${fmt(manganhItems.reduce((s,r)=>s+(+r.tangDT||0),0))}</td>
       <td class="td-number col-giulai10">${fmt(manganhItems.reduce((s,r)=>s+(+r.giuLai10||0),0))}</td>
+      <td class="td-number col-tietkiem5">${fmt(manganhItems.reduce((s,r)=>s+(+r.tietKiem5||0),0))}</td>
       <td class="td-number highlight col-kpduocsd">${fmt(manganhAlloc)}</td>
       <td class="td-number used col-kpdadung">${fmt(manganhUsed)}</td>
       <td class="td-number remaining ${manganhRemain < 0 ? 'danger' : 'ok'} col-kpconlai">${fmt(manganhRemain)}</td>
@@ -949,6 +953,7 @@ function renderTable(){
     <td class="td-number col-giamdt">${fmt(data.reduce((s,r)=>s+(+r.giamDT||0),0))}</td>
     <td class="td-number col-tangdt">${fmt(data.reduce((s,r)=>s+(+r.tangDT||0),0))}</td>
     <td class="td-number col-giulai10">${fmt(data.reduce((s,r)=>s+(+r.giuLai10||0),0))}</td>
+    <td class="td-number col-tietkiem5">${fmt(data.reduce((s,r)=>s+(+r.tietKiem5||0),0))}</td>
     <td class="td-number highlight col-kpduocsd">${fmt(globalAlloc)}</td>
     <td class="td-number used col-kpdadung">${fmt(globalUsed)}</td>
     <td class="td-number remaining ${globalRemain < 0 ? 'danger' : 'ok'} col-kpconlai">${fmt(globalRemain)}</td>
@@ -1058,6 +1063,7 @@ function startEdit(id){
   document.getElementById('f-giam').value=r.giamDT||'';
   document.getElementById('f-tang').value=r.tangDT||'';
   document.getElementById('f-giulai10').value=r.giuLai10||'';
+  document.getElementById('f-tietkiem5').value=r.tietKiem5||'';
   document.getElementById('f-dadung').value=r.daDung||'';
   document.getElementById('f-handate').value=r.hanDate?r.hanDate.split('/').reverse().join('-'):'';
   document.getElementById('f-note').value=r.note||'';
@@ -1107,8 +1113,9 @@ function updateCalc(){
   const giam=+document.getElementById('f-giam').value||0;
   const tang=+document.getElementById('f-tang').value||0;
   const giulai=+document.getElementById('f-giulai10').value||0;
+  const tietkiem=+document.getElementById('f-tietkiem5').value||0;
   const da=+document.getElementById('f-dadung').value||0;
-  const duoc=dt+ton+kp-giam+tang-giulai;
+  const duoc=dt+ton+kp-giam+tang-giulai-tietkiem;
   const con=duoc-da;
   const pct=duoc>0?da/duoc*100:0;
   document.getElementById('calc-kpduocsd').textContent=fmt(duoc)+' đồng';
@@ -1133,8 +1140,8 @@ async function downloadBlob(blob, filename) {
 
 function exportCSV(){
   const data=items.filter(x=>!x.isGroupHeader);
-  const headers=['Mục','T.Mục','Nội dung','DT KP Cấp Đầu Năm','Tồn Năm Trước','KP Cấp Đầu Năm','Giảm DT','Tăng DT','Giữ lại 10% CCTL','KP Được SD','KP Đã SD','KP Còn Lại','Trạng thái','Ngày HH'];
-  const rows=data.map(r=>[r.muc,r.tieumuc,`"${r.noidung}"`,r.dtCapNam||0,r.tonNamTruoc||0,r.kpCapNam||0,r.giamDT||0,r.tangDT||0,r.giuLai10||0,calcKpDuocSD(r),r.daDung||0,calcConLai(r),getStatus(r),r.hanDate||'']);
+  const headers=['Mục','T.Mục','Nội dung','DT KP Cấp Đầu Năm','Tồn Năm Trước','KP Cấp Đầu Năm','Giảm DT','Tăng DT','Giữ lại 10% CCTL','Tiết kiệm 5% CTX','KP Được SD','KP Đã SD','KP Còn Lại','Trạng thái','Ngày HH'];
+  const rows=data.map(r=>[r.muc,r.tieumuc,`"${r.noidung}"`,r.dtCapNam||0,r.tonNamTruoc||0,r.kpCapNam||0,r.giamDT||0,r.tangDT||0,r.giuLai10||0,r.tietKiem5||0,calcKpDuocSD(r),r.daDung||0,calcConLai(r),getStatus(r),r.hanDate||'']);
   const csvHeader = [
     'SỞ Y TẾ TỈNH LAI CHÂU',
     'BỆNH VIỆN ĐA KHOA THAN UYÊN',
@@ -1156,7 +1163,7 @@ function exportXlsx(){
     const dataOnly = items.filter(x => !x.isGroupHeader);
     const groups = ['KP THƯỜNG XUYÊN', 'KP KHÔNG THƯỜNG XUYÊN'];
     
-    const headers=['Mục','T.Mục','Nội dung','DT KP Cấp Đầu Năm','Tồn Năm Trước','KP Cấp Đầu Năm','Giảm DT','Tăng DT','Giữ lại 10% CCTL','KP Được SD','KP Đã SD','KP Còn Lại','Tỷ lệ (%)','Trạng thái','Ngày HH'];
+    const headers=['Mục','T.Mục','Nội dung','DT KP Cấp Đầu Năm','Tồn Năm Trước','KP Cấp Đầu Năm','Giảm DT','Tăng DT','Giữ lại 10% CCTL','Tiết kiệm 5% CTX','KP Được SD','KP Đã SD','KP Còn Lại','Tỷ lệ (%)','Trạng thái','Ngày HH'];
     let rows = [];
     let globalAlloc = 0, globalUsed = 0;
 
@@ -1194,7 +1201,7 @@ function exportXlsx(){
           subUsed += (+r.daDung || 0);
 
           const isDetail = !!(r.muc || r.tieumuc);
-          rows.push([r.muc || '', r.tieumuc || '', r.noidung || '', r.dtCapNam || 0, r.tonNamTruoc || 0, r.kpCapNam || 0, r.giamDT || 0, r.tangDT || 0, r.giuLai10 || 0, kpDuoc, +r.daDung || 0, isDetail ? '' : conLai, isDetail ? '' : Math.round(pct * 10) / 10, isDetail ? '' : stTxt, r.hanDate || '']);
+          rows.push([r.muc || '', r.tieumuc || '', r.noidung || '', r.dtCapNam || 0, r.tonNamTruoc || 0, r.kpCapNam || 0, r.giamDT || 0, r.tangDT || 0, r.giuLai10 || 0, r.tietKiem5 || 0, kpDuoc, +r.daDung || 0, isDetail ? '' : conLai, isDetail ? '' : Math.round(pct * 10) / 10, isDetail ? '' : stTxt, r.hanDate || '']);
         });
 
         // Content Subtotal
@@ -1208,6 +1215,7 @@ function exportXlsx(){
             subItems.reduce((s,r)=>s+(+r.giamDT||0),0), 
             subItems.reduce((s,r)=>s+(+r.tangDT||0),0), 
             subItems.reduce((s,r)=>s+(+r.giuLai10||0),0), 
+            subItems.reduce((s,r)=>s+(+r.tietKiem5||0),0),
             subAlloc, subUsed, subRemain, Math.round(subPct * 10) / 10, '', '']);
         }
         groupAlloc += subAlloc;
@@ -1224,6 +1232,7 @@ function exportXlsx(){
         groupItems.reduce((s,r)=>s+(+r.giamDT||0),0), 
         groupItems.reduce((s,r)=>s+(+r.tangDT||0),0), 
         groupItems.reduce((s,r)=>s+(+r.giuLai10||0),0), 
+        groupItems.reduce((s,r)=>s+(+r.tietKiem5||0),0),
         groupAlloc, groupUsed, groupRemain, Math.round(groupPct * 10) / 10, '', '']);
       
       // Add a spacer row
@@ -1243,6 +1252,7 @@ function exportXlsx(){
       dataOnly.reduce((s,r)=>s+(+r.giamDT||0),0), 
       dataOnly.reduce((s,r)=>s+(+r.tangDT||0),0), 
       dataOnly.reduce((s,r)=>s+(+r.giuLai10||0),0), 
+      dataOnly.reduce((s,r)=>s+(+r.tietKiem5||0),0),
       globalAlloc, globalUsed, globalRemain, Math.round(globalPct * 10) / 10, '', '']);
 
     const ta = globalAlloc;
@@ -1314,7 +1324,7 @@ function exportPDF(){
     // Table data construction with grouping
     const dataOnly=items.filter(x=>!x.isGroupHeader);
     const groups=['KP THƯỜNG XUYÊN','KP KHÔNG THƯỜNG XUYÊN'];
-    const headers=[['Mục','T.Mục','Nội Dung','DT KP Cấp','Tồn Năm Trước','KP Cấp ĐN','Giảm DT','Tăng DT','Giữ 10%','KP Được SD','KP Đã SD','KP Còn Lại','Trạng thái']];
+    const headers=[['Mục','T.Mục','Nội Dung','DT KP Cấp','Tồn Năm Trước','KP Cấp ĐN','Giảm DT','Tăng DT','Giữ 10%','TK 5%','KP Được SD','KP Đã SD','KP Còn Lại','Trạng thái']];
     
     let rows=[];
     let globalAlloc = 0, globalUsed = 0;
@@ -1326,7 +1336,7 @@ function exportPDF(){
       // Group Header Row
       rows.push({
         type: 'groupHeader',
-        data: [`${gIdx + 1}. ${g}`, '', '', '', '', '', '', '', '', '', '', '', '']
+        data: [`${gIdx + 1}. ${g}`, '', '', '', '', '', '', '', '', '', '', '', '', '']
       });
 
       let groupAlloc = 0, groupUsed = 0;
@@ -1357,7 +1367,7 @@ function exportPDF(){
           const isDetail = !!(r.muc || r.tieumuc);
           rows.push({
             type: 'item',
-            data: [r.muc||'', r.tieumuc||'', r.noidung||'', fmt(r.dtCapNam||0), fmt(r.tonNamTruoc||0), fmt(r.kpCapNam||0), fmt(r.giamDT||0), fmt(r.tangDT||0), fmt(r.giuLai10||0), fmt(kpDuoc), fmt(r.daDung||0), isDetail ? '-' : fmt(conLai), isDetail ? '-' : stTxt]
+            data: [r.muc||'', r.tieumuc||'', r.noidung||'', fmt(r.dtCapNam||0), fmt(r.tonNamTruoc||0), fmt(r.kpCapNam||0), fmt(r.giamDT||0), fmt(r.tangDT||0), fmt(r.giuLai10||0), fmt(r.tietKiem5||0), fmt(kpDuoc), fmt(r.daDung||0), isDetail ? '-' : fmt(conLai), isDetail ? '-' : stTxt]
           });
         });
 
@@ -1366,7 +1376,7 @@ function exportPDF(){
           const subRemain = subAlloc - subUsed;
           rows.push({
             type: 'contentTotal',
-            data: [`Tổng: ${contentName}`, '', '', fmt(subItems.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.giuLai10||0),0)), fmt(subAlloc), fmt(subUsed), fmt(subRemain), '']
+            data: [`Tổng: ${contentName}`, '', '', fmt(subItems.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.giuLai10||0),0)), fmt(subItems.reduce((s,r)=>s+(+r.tietKiem5||0),0)), fmt(subAlloc), fmt(subUsed), fmt(subRemain), '']
           });
         }
         groupAlloc += subAlloc;
@@ -1377,7 +1387,7 @@ function exportPDF(){
       const groupRemain = groupAlloc - groupUsed;
       rows.push({
         type: 'groupTotal',
-        data: [`CỘNG ${g}`, '', '', fmt(groupItems.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.giuLai10||0),0)), fmt(groupAlloc), fmt(groupUsed), fmt(groupRemain), '']
+        data: [`CỘNG ${g}`, '', '', fmt(groupItems.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.giuLai10||0),0)), fmt(groupItems.reduce((s,r)=>s+(+r.tietKiem5||0),0)), fmt(groupAlloc), fmt(groupUsed), fmt(groupRemain), '']
       });
 
       globalAlloc += groupAlloc;
@@ -1385,7 +1395,7 @@ function exportPDF(){
       // Spacer row for PDF clarity
       rows.push({
         type: 'spacer',
-        data: ['', '', '', '', '', '', '', '', '', '', '', '', '']
+        data: ['', '', '', '', '', '', '', '', '', '', '', '', '', '']
       });
     });
 
@@ -1393,7 +1403,7 @@ function exportPDF(){
     const globalRemain = globalAlloc - globalUsed;
     rows.push({
       type: 'grandTotal',
-      data: ['TỔNG CỘNG (I + II)', '', '', fmt(dataOnly.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.giuLai10||0),0)), fmt(globalAlloc), fmt(globalUsed), fmt(globalRemain), '']
+      data: ['TỔNG CỘNG (I + II)', '', '', fmt(dataOnly.reduce((s,r)=>s+(+r.dtCapNam||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.tonNamTruoc||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.kpCapNam||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.giamDT||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.tangDT||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.giuLai10||0),0)), fmt(dataOnly.reduce((s,r)=>s+(+r.tietKiem5||0),0)), fmt(globalAlloc), fmt(globalUsed), fmt(globalRemain), '']
     });
 
     console.log('PDF: Generating rows...', rows.length);
@@ -2209,6 +2219,7 @@ async function initApp() {
           giamDT: +document.getElementById('f-giam').value || 0,
           tangDT: +document.getElementById('f-tang').value || 0,
           giuLai10: +document.getElementById('f-giulai10').value || 0,
+          tietKiem5: +document.getElementById('f-tietkiem5').value || 0,
           daDung: +document.getElementById('f-dadung').value || 0,
           hanDate: hanFormatted,
           note: document.getElementById('f-note').value,
