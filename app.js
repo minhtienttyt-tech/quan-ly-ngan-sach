@@ -323,8 +323,9 @@ async function autoSyncFromGoogleSheet() {
   }
   if (document.hidden || editingId !== null) return;
   
-  // Tránh đè đè dữ liệu khi người dùng vừa mới lưu cục bộ trong vòng 60 giây qua
-  if (Date.now() - lastSaveTime < 60000) {
+  // Tránh ghi đè dữ liệu khi người dùng vừa mới lưu trong vòng 5 phút qua
+  // (đủ thời gian để Google Sheets nhận và lưu xong dữ liệu)
+  if (Date.now() - lastSaveTime < 300000) {
     console.log('Bỏ qua đồng bộ tự động vì vừa có hoạt động lưu dữ liệu.');
     return;
   }
@@ -602,12 +603,18 @@ async function save(){
       saveToGoogleSheet(currentYear, items)
         .then(success => {
           if (success) {
+            // Reset lastSaveTime sau khi Google Sheets xác nhận lưu thành công
+            // để đếm lại 5 phút bảo vệ từ thời điểm lưu thực sự thành công
+            lastSaveTime = Date.now();
             console.log('Đã tự động lưu Google Sheet thành công.');
           }
         })
         .catch(err => {
           console.error('Lỗi tự động đồng bộ Google Sheet:', err);
-          toast('Lỗi tự động đồng bộ Google Sheet: ' + err.message, 'error');
+          // Khi lưu thất bại, giữ bảo vệ thêm 5 phút nữa
+          // để tránh auto-sync ghi đè dữ liệu chưa được lưu lên cloud
+          lastSaveTime = Date.now();
+          toast('Lỗi đồng bộ Google Sheet, dữ liệu vẫn được lưu tại máy: ' + err.message, 'error');
         });
     }
   }
