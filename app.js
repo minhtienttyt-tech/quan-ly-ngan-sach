@@ -96,9 +96,13 @@ if (googleSheetUrl && !googleSheetUrl.startsWith('http://') && !googleSheetUrl.s
   googleSheetUrl = 'https://' + googleSheetUrl;
 }
 
-let autoSyncTimeSeconds = localStorage.getItem('budget_auto_sync') || '30';
+let autoSyncTimeSeconds = localStorage.getItem('budget_auto_sync') || '120';
 let autoSyncIntervalId = null;
-let lastSaveTime = 0;
+let lastSaveTime = parseInt(localStorage.getItem('budget_last_save_time') || '0');
+function setLastSaveTime() {
+  lastSaveTime = Date.now();
+  localStorage.setItem('budget_last_save_time', String(lastSaveTime));
+}
 
 // ===== UNIT SETUP & BANNER =====
 
@@ -325,7 +329,8 @@ async function autoSyncFromGoogleSheet() {
   
   // Tránh ghi đè dữ liệu khi người dùng vừa mới lưu trong vòng 5 phút qua
   // (đủ thời gian để Google Sheets nhận và lưu xong dữ liệu)
-  if (Date.now() - lastSaveTime < 300000) {
+  const savedTime = parseInt(localStorage.getItem('budget_last_save_time') || '0');
+  if (Date.now() - savedTime < 300000) {
     console.log('Bỏ qua đồng bộ tự động vì vừa có hoạt động lưu dữ liệu.');
     return;
   }
@@ -536,8 +541,9 @@ async function loadCurrentYearData(){
   }
 
   // Nếu vừa mới lưu trong vòng 5 phút, bỏ qua việc tải lại từ cloud
-  // (tránh ghi đè dữ liệu vừa nhập chưa được đồng bộ lên cloud xong)
-  if (Date.now() - lastSaveTime < 300000) {
+  // (đọc từ localStorage để sống qua page refresh)
+  const savedTime = parseInt(localStorage.getItem('budget_last_save_time') || '0');
+  if (Date.now() - savedTime < 300000) {
     console.log('Bỏ qua tải lại cloud trong loadCurrentYearData vì vừa mới lưu dữ liệu.');
     return;
   }
@@ -602,27 +608,22 @@ async function save(){
   updateFormSuggestions();
   
   // Thiết lập thời gian lưu để tạm khóa đồng bộ tự động chạy đè
-  lastSaveTime = Date.now();
+  setLastSaveTime();
   
-  // 1. Đồng bộ Google Sheets
+  // 1. Đồng bộ Google Sheets (AWAIT để đảm bảo lưu xong trước khi cho phép sync)
   if (syncMode === 'sheet' || syncMode === 'both') {
     if (googleSheetUrl) {
-      saveToGoogleSheet(currentYear, items)
-        .then(success => {
-          if (success) {
-            // Reset lastSaveTime sau khi Google Sheets xác nhận lưu thành công
-            // để đếm lại 5 phút bảo vệ từ thời điểm lưu thực sự thành công
-            lastSaveTime = Date.now();
-            console.log('Đã tự động lưu Google Sheet thành công.');
-          }
-        })
-        .catch(err => {
-          console.error('Lỗi tự động đồng bộ Google Sheet:', err);
-          // Khi lưu thất bại, giữ bảo vệ thêm 5 phút nữa
-          // để tránh auto-sync ghi đè dữ liệu chưa được lưu lên cloud
-          lastSaveTime = Date.now();
-          toast('Lỗi đồng bộ Google Sheet, dữ liệu vẫn được lưu tại máy: ' + err.message, 'error');
-        });
+      try {
+        const success = await saveToGoogleSheet(currentYear, items);
+        if (success) {
+          setLastSaveTime();
+          console.log('Đã tự động lưu Google Sheet thành công.');
+        }
+      } catch (err) {
+        console.error('Lỗi tự động đồng bộ Google Sheet:', err);
+        setLastSaveTime();
+        toast('Lỗi đồng bộ Google Sheet, dữ liệu vẫn được lưu tại máy: ' + err.message, 'error');
+      }
     }
   }
   
@@ -631,7 +632,6 @@ async function save(){
     if (!budgetSupabaseClient) return;
 
     try {
-      // Clean data to avoid common JSON errors
       const cleanItems = JSON.parse(JSON.stringify(items));
       
       const { error } = await budgetSupabaseClient
@@ -1830,7 +1830,7 @@ function confirmImport(){
   localStorage.setItem(key,JSON.stringify(existing));
   
   // Thiết lập thời gian lưu để tạm khóa đồng bộ tự động chạy đè
-  lastSaveTime = Date.now();
+  setLastSaveTime();
   // Save to cloud
   if (budgetSupabaseClient) {
     budgetSupabaseClient.from('budget_data').upsert({ year: String(year), items: existing })
@@ -2288,7 +2288,7 @@ async function initApp() {
             
             // Cập nhật items trực tiếp từ localStorage thay vì gọi loadCurrentYearData()
             // (để tránh ghi đè từ cloud truyền vào)
-            lastSaveTime = Date.now();
+            setLastSaveTime();
             items = otherItems;
             renderTable();
             updateFormSuggestions();
