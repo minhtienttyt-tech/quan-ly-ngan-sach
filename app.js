@@ -2265,6 +2265,13 @@ async function initApp() {
               }
             }
             toast('Đã thêm khoản chi vào năm ' + targetYear, 'success');
+            
+            // TỰ ĐỘNG CHUYỂN NĂM LÀM VIỆC SANG NĂM VỪA THÊM ĐỂ HIỂN THỊ DỮ LIỆU
+            currentYear = targetYear;
+            localStorage.setItem('budget_current_year', currentYear);
+            const globalYearEl = document.getElementById('globalYear');
+            if (globalYearEl) globalYearEl.value = currentYear;
+            loadCurrentYearData();
           }
         }
         resetForm(); budgetNavigate('budget', currentNavFilter);
