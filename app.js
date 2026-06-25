@@ -535,6 +535,13 @@ async function loadCurrentYearData(){
     updateFormSuggestions();
   }
 
+  // Nếu vừa mới lưu trong vòng 5 phút, bỏ qua việc tải lại từ cloud
+  // (tránh ghi đè dữ liệu vừa nhập chưa được đồng bộ lên cloud xong)
+  if (Date.now() - lastSaveTime < 300000) {
+    console.log('Bỏ qua tải lại cloud trong loadCurrentYearData vì vừa mới lưu dữ liệu.');
+    return;
+  }
+
   // Tải dữ liệu từ Google Sheets nếu chế độ là 'sheet' hoặc 'both'
   if (syncMode === 'sheet' || syncMode === 'both') {
     if (googleSheetUrl) {
@@ -2278,7 +2285,13 @@ async function initApp() {
             localStorage.setItem('budget_current_year', currentYear);
             const globalYearEl = document.getElementById('globalYear');
             if (globalYearEl) globalYearEl.value = currentYear;
-            loadCurrentYearData();
+            
+            // Cập nhật items trực tiếp từ localStorage thay vì gọi loadCurrentYearData()
+            // (để tránh ghi đè từ cloud truyền vào)
+            lastSaveTime = Date.now();
+            items = otherItems;
+            renderTable();
+            updateFormSuggestions();
           }
         }
         resetForm(); budgetNavigate('budget', currentNavFilter);
