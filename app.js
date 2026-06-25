@@ -793,7 +793,7 @@ function renderTable(){
   const allFiltered = getFiltered();
   const data = allFiltered.filter(r => !r.isGroupHeader);
   const uniqueManganh = [...new Set(data.map(r => r.manganh || 'Chưa phân ngành'))].sort();
-  const groups = ['KP THƯỜNG XUYÊN', 'KP KHÔNG THƯỜNG XUYÊN'];
+  const groups = ['KP THƯỜNG XUYÊN', 'KP KHÔNG THƯỜNG XUYÊN', 'TIẾT KIỆM CHI THƯỜNG XUYÊN'];
   
   let html = '';
   let globalAlloc = 0, globalUsed = 0;
@@ -1013,7 +1013,7 @@ function renderReport(){
     document.getElementById(`chart-${gi===0?'tx':'ktx'}`).innerHTML=html||'<p style="color:var(--text-muted);padding:16px">Chưa có dữ liệu</p>';
   });
   // summary table
-  const groups=['KP THƯỜNG XUYÊN','KP KHÔNG THƯỜNG XUYÊN'];
+  const groups=['KP THƯỜNG XUYÊN','KP KHÔNG THƯỜNG XUYÊN','TIẾT KIỆM CHI THƯỜNG XUYÊN'];
   let tbl=`<table class="report-table"><thead><tr><th>Nhóm mục</th><th class="num">KP Được SD</th><th class="num">Đã Sử Dụng</th><th class="num">Còn Lại</th><th class="num">Tỷ lệ</th><th>Trạng thái</th></tr></thead><tbody>`;
   groups.forEach(g=>{
     const gd=data.filter(r=>r.group===g);
@@ -1161,7 +1161,7 @@ function exportXlsx(){
   try{
     // Hierarchical construction for Excel
     const dataOnly = items.filter(x => !x.isGroupHeader);
-    const groups = ['KP THƯỜNG XUYÊN', 'KP KHÔNG THƯỜNG XUYÊN'];
+    const groups = ['KP THƯỜNG XUYÊN', 'KP KHÔNG THƯỜNG XUYÊN', 'TIẾT KIỆM CHI THƯỜNG XUYÊN'];
     
     const headers=['Mục','T.Mục','Nội dung','DT KP Cấp Đầu Năm','Tồn Năm Trước','KP Cấp Đầu Năm','Giảm DT','Tăng DT','Giữ lại 10% CCTL','Tiết kiệm 5% CTX','KP Được SD','KP Đã SD','KP Còn Lại','Tỷ lệ (%)','Trạng thái','Ngày HH'];
     let rows = [];
@@ -1323,7 +1323,7 @@ function exportPDF(){
     // Header logic moved to didDrawPage for consistency on all pages
     // Table data construction with grouping
     const dataOnly=items.filter(x=>!x.isGroupHeader);
-    const groups=['KP THƯỜNG XUYÊN','KP KHÔNG THƯỜNG XUYÊN'];
+    const groups=['KP THƯỜNG XUYÊN','KP KHÔNG THƯỜNG XUYÊN','TIẾT KIỆM CHI THƯỜNG XUYÊN'];
     const headers=[['Mục','T.Mục','Nội Dung','DT KP Cấp','Tồn Năm Trước','KP Cấp ĐN','Giảm DT','Tăng DT','Giữ 10%','TK 5%','KP Được SD','KP Đã SD','KP Còn Lại','Trạng thái']];
     
     let rows=[];
@@ -1732,6 +1732,8 @@ function applyMapping(){
     const noidungUpper = noidung.toUpperCase();
     if (maNguon === '12') computedGroup = 'KP KHÔNG THƯỜNG XUYÊN';
     else if (maNguon === '13') computedGroup = 'KP THƯỜNG XUYÊN';
+    else if (maNguon === '28') computedGroup = 'TIẾT KIỆM CHI THƯỜNG XUYÊN';
+    else if (noidungUpper.includes('TIẾT KIỆM CHI THƯỜNG XUYÊN') || noidung.includes('28')) computedGroup = 'TIẾT KIỆM CHI THƯỜNG XUYÊN';
     else if (noidungUpper.includes('KHÔNG THƯỜNG XUYÊN') || noidungUpper.includes('KTX') || noidung.includes('12')) computedGroup = 'KP KHÔNG THƯỜNG XUYÊN';
     else if (noidungUpper.includes('SỬA CHỮA THƯỜNG XUYÊN') || noidungUpper.includes('SUA CHUA THUONG XUYEN')) computedGroup = 'KP KHÔNG THƯỜNG XUYÊN';
     else if (noidungUpper.includes('THƯỜNG XUYÊN') || noidungUpper.includes('TX') || noidung.includes('13')) computedGroup = 'KP THƯỜNG XUYÊN';
