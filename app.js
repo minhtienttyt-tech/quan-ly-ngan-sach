@@ -1064,8 +1064,9 @@ function startEdit(id){
   }
   const r=items.find(x=>x.id===id);if(!r)return;
   // Lưu vị trí cuộn trước khi chuyển sang form sửa
-  const tableWrap = document.querySelector('.table-wrap');
-  if (tableWrap) savedScrollPos = tableWrap.scrollTop;
+  savedScrollPos = window.scrollY || document.documentElement.scrollTop || 0;
+  const mainContent = document.querySelector('.main-content');
+  if (mainContent) savedScrollPos = mainContent.scrollTop || savedScrollPos;
   editingId=id;
   document.getElementById('f-editId').value=id;
   document.getElementById('f-year').value=currentYear;
@@ -2298,15 +2299,20 @@ async function initApp() {
             updateFormSuggestions();
           }
         }
-        const restoreScroll = editingId ? savedScrollPos : null;
+        const wasEditing = !!editingId;
+        const restoreScroll = wasEditing ? savedScrollPos : null;
         resetForm(); budgetNavigate('budget', currentNavFilter);
         // Khôi phục vị trí cuộn sau khi cập nhật
-        if (restoreScroll != null) {
-          requestAnimationFrame(() => {
-            const tw = document.querySelector('.table-wrap');
-            if (tw) tw.scrollTop = restoreScroll;
+        if (wasEditing && restoreScroll != null) {
+          setTimeout(() => {
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent && mainContent.scrollHeight > mainContent.clientHeight) {
+              mainContent.scrollTop = restoreScroll;
+            } else {
+              window.scrollTo(0, restoreScroll);
+            }
             savedScrollPos = null;
-          });
+          }, 100);
         }
       });
     }
