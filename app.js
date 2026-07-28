@@ -864,7 +864,7 @@ function renderTable(){
         subAlloc += kpDuoc;
         subUsed += (+r.daDung || 0);
         
-        html += `<tr class="${r.dtCapNam > 0 ? 'row-parent-content' : ''}">
+        html += `<tr class="${r.dtCapNam > 0 ? 'row-parent-content' : ''}" ondblclick="startEdit(${r.id})" style="cursor:pointer" title="Nhấp đúp để sửa">
           <td class="td-muc">${r.muc || ''}</td>
           <td class="td-tieumuc">${r.tieumuc || ''}</td>
           <td class="td-manganh">${r.manganh || ''}</td>
