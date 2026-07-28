@@ -86,6 +86,7 @@ let items=[];
 let currentPage=1;const PAGE_SIZE=50;
 let filterText='',filterGroup='',filterStatus='';
 let editingId=null;
+let savedScrollPos=null; // Lưu vị trí cuộn bảng khi sửa
 let currentNavFilter='all';
 let syncMode = localStorage.getItem('budget_sync_mode') || 'sheet'; // 'local' | 'supabase' | 'sheet' | 'both'
 let googleSheetUrl = (localStorage.getItem('budget_sheet_url') || 'https://script.google.com/macros/s/AKfycbxBTxMzJwXLsGInfWhblYFFZ9WtCgDTQKb9g8S66v1K1pSO39WkWMzQGf_NVNqR5faJ/exec').trim();
@@ -1062,6 +1063,9 @@ function startEdit(id){
     return;
   }
   const r=items.find(x=>x.id===id);if(!r)return;
+  // Lưu vị trí cuộn trước khi chuyển sang form sửa
+  const tableWrap = document.querySelector('.table-wrap');
+  if (tableWrap) savedScrollPos = tableWrap.scrollTop;
   editingId=id;
   document.getElementById('f-editId').value=id;
   document.getElementById('f-year').value=currentYear;
@@ -2294,7 +2298,16 @@ async function initApp() {
             updateFormSuggestions();
           }
         }
+        const restoreScroll = editingId ? savedScrollPos : null;
         resetForm(); budgetNavigate('budget', currentNavFilter);
+        // Khôi phục vị trí cuộn sau khi cập nhật
+        if (restoreScroll != null) {
+          requestAnimationFrame(() => {
+            const tw = document.querySelector('.table-wrap');
+            if (tw) tw.scrollTop = restoreScroll;
+            savedScrollPos = null;
+          });
+        }
       });
     }
 
