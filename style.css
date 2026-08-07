@@ -63,6 +63,10 @@ body.theme-light {
   --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
 }
 
+body.theme-light .card {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
 body.theme-light .card,
 body.theme-light .login-card {
   background: rgba(255, 255, 255, 0.9) !important;
@@ -411,12 +415,13 @@ body { background: var(--bg-base); color: var(--text-primary); min-height: 100vh
 }
 .th-muc { width: 50px; text-align: center; }
 .th-tieumuc { width: 60px; text-align: center; }
-.th-noidung { min-width: 240px; text-align: left; }
-.th-number { width: 120px; text-align: right; }
-.th-status { width: 100px; text-align: center; }
+.th-manganh { width: 80px; text-align: center; }
+.th-noidung { min-width: 280px; text-align: left; }
+.th-number { width: 130px; text-align: right; }
+.th-status { width: 110px; text-align: center; }
 .th-percent { width: 80px; text-align: center; }
 .th-date { width: 90px; text-align: center; }
-.th-action { width: 80px; text-align: center; }
+.th-action { width: 90px; text-align: center; }
 
 .budget-table tbody tr {
   border-bottom: 1px solid var(--border);
@@ -425,7 +430,11 @@ body { background: var(--bg-base); color: var(--text-primary); min-height: 100vh
 .budget-table tbody tr:hover { 
   background: var(--bg-card-hover); 
 }
-.budget-table td { padding: 12px; vertical-align: middle; }
+.budget-table td { 
+  padding: 12px 14px; 
+  vertical-align: middle; 
+  white-space: nowrap; 
+}
 
 /* Row types */
 .row-group-header {
@@ -434,7 +443,7 @@ body { background: var(--bg-base); color: var(--text-primary); min-height: 100vh
 .row-group-header td {
   font-weight: 700; font-size: 13px; color: var(--blue-light) !important;
   text-transform: uppercase; letter-spacing: 0.5px;
-  padding: 14px 12px;
+  padding: 16px 14px;
 }
 .row-group-header:hover { background: var(--bg-card-hover) !important; }
 
@@ -455,9 +464,10 @@ body { background: var(--bg-base); color: var(--text-primary); min-height: 100vh
 
 .td-muc { text-align: center; color: var(--text-muted); font-weight: 600; }
 .td-tieumuc { text-align: center; color: var(--text-secondary); font-size: 12px; }
-.td-noidung { color: var(--text-primary); padding-left: 12px !important; }
-.td-noidung.indent { padding-left: 24px !important; }
-.td-noidung.indent-2 { padding-left: 36px !important; }
+.td-manganh { text-align: center; color: var(--green-light); font-weight: 600; }
+.td-noidung { color: var(--text-primary); padding-left: 14px !important; white-space: normal !important; line-height: 1.5; }
+.td-noidung.indent { padding-left: 32px !important; }
+.td-noidung.indent-2 { padding-left: 48px !important; }
 .td-number {
   text-align: right; font-variant-numeric: tabular-nums;
   color: var(--text-secondary); font-size: 12px;
@@ -484,17 +494,19 @@ body { background: var(--bg-base); color: var(--text-primary); min-height: 100vh
 
 /* Action buttons */
 .btn-edit {
-  background: rgba(59,130,246,0.15); color: var(--blue-light); border: none;
-  border-radius: 6px; padding: 5px 10px; cursor: pointer; font-size: 12px;
-  transition: all var(--transition); margin-right: 4px;
+  background: rgba(59,130,246,0.1) !important; color: var(--blue-light) !important; 
+  border: 1px solid rgba(59,130,246,0.2) !important; box-shadow: none !important;
+  border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 13px;
+  transition: all var(--transition); margin-right: 4px; display: inline-flex; align-items: center; justify-content: center;
 }
-.btn-edit:hover { background: rgba(59,130,246,0.3); }
+.btn-edit:hover { background: rgba(59,130,246,0.25) !important; border-color: rgba(59,130,246,0.4) !important; }
 .btn-del {
-  background: rgba(239,68,68,0.12); color: var(--red-light); border: none;
-  border-radius: 6px; padding: 5px 8px; cursor: pointer; font-size: 12px;
-  transition: all var(--transition);
+  background: rgba(239,68,68,0.1) !important; color: var(--red-light) !important; 
+  border: 1px solid rgba(239,68,68,0.2) !important; box-shadow: none !important;
+  border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 13px;
+  transition: all var(--transition); display: inline-flex; align-items: center; justify-content: center;
 }
-.btn-del:hover { background: rgba(239,68,68,0.25); }
+.btn-del:hover { background: rgba(239,68,68,0.25) !important; border-color: rgba(239,68,68,0.4) !important; }
 
 /* Table footer */
 .table-footer {
