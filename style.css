@@ -428,7 +428,11 @@ body { background: var(--bg-base); color: var(--text-primary); min-height: 100vh
   transition: all var(--transition);
 }
 .budget-table tbody tr:hover { 
-  background: var(--bg-card-hover); 
+  background: var(--bg-row-hover, rgba(59, 130, 246, 0.05)); 
+  transform: scale(1.002);
+  z-index: 5;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  position: relative;
 }
 .budget-table td { 
   padding: 12px 14px; 
@@ -438,14 +442,14 @@ body { background: var(--bg-base); color: var(--text-primary); min-height: 100vh
 
 /* Row types */
 .row-group-header {
-  background: var(--bg-surface) !important;
+  background: linear-gradient(90deg, var(--blue-glow), transparent) !important;
 }
 .row-group-header td {
   font-weight: 700; font-size: 13px; color: var(--blue-light) !important;
   text-transform: uppercase; letter-spacing: 0.5px;
   padding: 16px 14px;
 }
-.row-group-header:hover { background: var(--bg-card-hover) !important; }
+.row-group-header:hover { background: linear-gradient(90deg, rgba(59,130,246,0.2), transparent) !important; }
 
 .row-sub-header td { color: var(--purple); font-weight: 600; background: var(--bg-card); }
 
@@ -494,19 +498,17 @@ body { background: var(--bg-base); color: var(--text-primary); min-height: 100vh
 
 /* Action buttons */
 .btn-edit {
-  background: rgba(59,130,246,0.1) !important; color: var(--blue-light) !important; 
-  border: 1px solid rgba(59,130,246,0.2) !important; box-shadow: none !important;
+  background: var(--blue-glow) !important; color: var(--blue-light) !important; border: none !important;
   border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 13px;
   transition: all var(--transition); margin-right: 4px; display: inline-flex; align-items: center; justify-content: center;
 }
-.btn-edit:hover { background: rgba(59,130,246,0.25) !important; border-color: rgba(59,130,246,0.4) !important; }
+.btn-edit:hover { background: rgba(59,130,246,0.3) !important; transform: translateY(-1px); }
 .btn-del {
-  background: rgba(239,68,68,0.1) !important; color: var(--red-light) !important; 
-  border: 1px solid rgba(239,68,68,0.2) !important; box-shadow: none !important;
+  background: var(--red-glow) !important; color: var(--red-light) !important; border: none !important;
   border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 13px;
   transition: all var(--transition); display: inline-flex; align-items: center; justify-content: center;
 }
-.btn-del:hover { background: rgba(239,68,68,0.25) !important; border-color: rgba(239,68,68,0.4) !important; }
+.btn-del:hover { background: rgba(239,68,68,0.25) !important; transform: translateY(-1px); }
 
 /* Table footer */
 .table-footer {
