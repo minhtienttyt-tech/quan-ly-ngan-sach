@@ -1163,11 +1163,42 @@ function renderReport(){
       </td>
     </tr>`;
 
-    // Render "Mục" level items (summary items)
-    const mucItems = gd.filter(r => r.muc !== '');
-    mucItems.forEach(r => {
+    // Render "Mục" level items (summary items) by accumulating child values
+    const parentNodes = [];
+    let currentParent = null;
+    gd.forEach(r => {
+      if (r.muc !== '') {
+        currentParent = {
+          noidung: r.noidung,
+          dtCapNam: +r.dtCapNam || 0,
+          tonNamTruoc: +r.tonNamTruoc || 0,
+          kpCapNam: +r.kpCapNam || 0,
+          giamDT: +r.giamDT || 0,
+          tangDT: +r.tangDT || 0,
+          giuLai10: +r.giuLai10 || 0,
+          tietKiem5: +r.tietKiem5 || 0,
+          daDung: +r.daDung || 0
+        };
+        parentNodes.push(currentParent);
+      } else {
+        if (!currentParent) {
+          currentParent = { noidung: 'Các khoản chi khác', dtCapNam: 0, tonNamTruoc: 0, kpCapNam: 0, giamDT: 0, tangDT: 0, giuLai10: 0, tietKiem5: 0, daDung: 0 };
+          parentNodes.push(currentParent);
+        }
+        currentParent.dtCapNam += +r.dtCapNam || 0;
+        currentParent.tonNamTruoc += +r.tonNamTruoc || 0;
+        currentParent.kpCapNam += +r.kpCapNam || 0;
+        currentParent.giamDT += +r.giamDT || 0;
+        currentParent.tangDT += +r.tangDT || 0;
+        currentParent.giuLai10 += +r.giuLai10 || 0;
+        currentParent.tietKiem5 += +r.tietKiem5 || 0;
+        currentParent.daDung += +r.daDung || 0;
+      }
+    });
+
+    parentNodes.forEach(r => {
       const a = calcKpDuocSD(r);
-      const u = (+r.daDung || 0);
+      const u = r.daDung;
       if (a === 0 && u === 0) return; // Hide empty items
 
       const pct = a>0 ? u/a*100 : 0;
