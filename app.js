@@ -1120,20 +1120,91 @@ function renderReport(){
     });
     document.getElementById(`chart-${gi===0?'tx':'ktx'}`).innerHTML=html||'<p style="color:var(--text-muted);padding:16px">Chưa có dữ liệu</p>';
   });
-  // summary table
+  // detailed report table
   const groups=['KP THƯỜNG XUYÊN','KP KHÔNG THƯỜNG XUYÊN','TIẾT KIỆM CHI THƯỜNG XUYÊN'];
-  let tbl=`<table class="report-table"><thead><tr><th>Nhóm mục</th><th class="num">KP Được SD</th><th class="num">Đã Sử Dụng</th><th class="num">Còn Lại</th><th class="num">Tỷ lệ</th><th>Trạng thái</th></tr></thead><tbody>`;
+  let tbl=`<table class="report-table" style="width:100%; border-collapse:collapse; font-size:13px;">
+    <thead>
+      <tr>
+        <th style="text-align:left; padding:12px; border-bottom:1px solid var(--border); color:var(--text-muted);">Nội dung chi</th>
+        <th class="num" style="padding:12px; border-bottom:1px solid var(--border); width:130px; color:var(--text-muted);">KP Được SD</th>
+        <th class="num" style="padding:12px; border-bottom:1px solid var(--border); width:130px; color:var(--text-muted);">Đã Sử Dụng</th>
+        <th class="num" style="padding:12px; border-bottom:1px solid var(--border); width:130px; color:var(--text-muted);">Còn Lại</th>
+        <th style="padding:12px; border-bottom:1px solid var(--border); width:180px; text-align:center; color:var(--text-muted);">Tiến độ</th>
+      </tr>
+    </thead>
+    <tbody>`;
+  
+  let grandTotalA = 0;
+  let grandTotalU = 0;
+
   groups.forEach(g=>{
     const gd=data.filter(r=>r.group===g);
     const ga=gd.reduce((s,r)=>s+calcKpDuocSD(r),0);
     const gu=gd.reduce((s,r)=>s+(+r.daDung||0),0);
-    const pct=ga>0?gu/ga*100:0;
-    const st=pct>=100?'danger':pct>=80?'warning':'good';
-    tbl+=`<tr><td>${g}</td><td class="num">${fmt(ga)}</td><td class="num">${fmt(gu)}</td><td class="num">${fmt(ga-gu)}</td><td class="num">${pct.toFixed(1)}%</td><td><span class="status-badge status-${st}">${pct>=100?'🔴 Vượt KP':pct>=80?'⚠️ Cảnh báo':'✅ Bình thường'}</span></td></tr>`;
+    grandTotalA += ga;
+    grandTotalU += gu;
+
+    const gpct=ga>0?gu/ga*100:0;
+    const gst=gpct>=100?'danger':gpct>=80?'warning':'';
+
+    // Group Header Row
+    tbl+=`<tr style="background:var(--bg-surface); font-weight:700;">
+      <td style="padding:14px 12px; color:var(--blue-light); text-transform:uppercase;">${g}</td>
+      <td class="num" style="padding:14px 12px; color:var(--text-primary);">${fmt(ga)}</td>
+      <td class="num" style="padding:14px 12px; color:var(--text-primary);">${fmt(gu)}</td>
+      <td class="num" style="padding:14px 12px; color:var(--text-primary);">${fmt(ga-gu)}</td>
+      <td style="padding:14px 12px;">
+        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px; color:var(--text-secondary);">
+          <span>Trung bình</span><span style="font-weight:600; color:var(--text-primary);">${gpct.toFixed(1)}%</span>
+        </div>
+        <div class="progress-bar-bg" style="height:6px;">
+          <div class="progress-bar-fill ${gst}" style="width:${Math.min(100, gpct)}%"></div>
+        </div>
+      </td>
+    </tr>`;
+
+    // Items
+    gd.forEach(r => {
+      const a = calcKpDuocSD(r);
+      const u = (+r.daDung || 0);
+      if (a === 0 && u === 0) return; // Hide empty items
+
+      const pct = a>0 ? u/a*100 : 0;
+      const st = pct>=100?'danger':pct>=80?'warning':'';
+      
+      tbl+=`<tr style="border-bottom:1px solid var(--border); transition:background 0.2s;">
+        <td style="padding:12px 12px 12px 24px; color:var(--text-secondary); max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${r.noidung}">${r.noidung}</td>
+        <td class="num" style="padding:12px;">${fmt(a)}</td>
+        <td class="num" style="padding:12px;">${fmt(u)}</td>
+        <td class="num" style="padding:12px; color:${a-u<0?'var(--red-light)':'inherit'}">${fmt(a-u)}</td>
+        <td style="padding:12px;">
+          <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px;">
+            <span></span><span style="font-weight:600; color:${st==='danger'?'var(--red-light)':st==='warning'?'var(--orange-light)':'var(--text-secondary)'}">${pct.toFixed(1)}%</span>
+          </div>
+          <div class="progress-bar-bg" style="height:4px; background:rgba(148,163,184,0.1);">
+            <div class="progress-bar-fill ${st}" style="width:${Math.min(100, pct)}%"></div>
+          </div>
+        </td>
+      </tr>`;
+    });
   });
-  const ta=data.reduce((s,r)=>s+calcKpDuocSD(r),0);
-  const tu=data.reduce((s,r)=>s+(+r.daDung||0),0);
-  tbl+=`<tr class="row-total"><td><strong>TỔNG CỘNG (I+II)</strong></td><td class="num"><strong>${fmt(ta)}</strong></td><td class="num"><strong>${fmt(tu)}</strong></td><td class="num"><strong>${fmt(ta-tu)}</strong></td><td class="num"><strong>${(ta>0?tu/ta*100:0).toFixed(1)}%</strong></td><td></td></tr>`;
+
+  const tpct = grandTotalA > 0 ? grandTotalU / grandTotalA * 100 : 0;
+  const tst = tpct >= 100 ? 'danger' : tpct >= 80 ? 'warning' : '';
+  tbl+=`<tr class="row-total" style="font-weight:800; background:var(--bg-surface);">
+    <td style="padding:16px 12px; color:var(--text-primary); text-transform:uppercase;">TỔNG CỘNG (I+II)</td>
+    <td class="num" style="padding:16px 12px; color:var(--text-primary); font-size:14px;">${fmt(grandTotalA)}</td>
+    <td class="num" style="padding:16px 12px; color:var(--text-primary); font-size:14px;">${fmt(grandTotalU)}</td>
+    <td class="num" style="padding:16px 12px; color:var(--text-primary); font-size:14px;">${fmt(grandTotalA-grandTotalU)}</td>
+    <td style="padding:16px 12px;">
+      <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px;">
+        <span style="color:var(--text-muted)">Tổng tiến độ</span><span style="font-weight:700; color:var(--text-primary);">${tpct.toFixed(1)}%</span>
+      </div>
+      <div class="progress-bar-bg" style="height:8px;">
+        <div class="progress-bar-fill ${tst}" style="width:${Math.min(100, tpct)}%"></div>
+      </div>
+    </td>
+  </tr>`;
   tbl+=`</tbody></table>`;
   document.getElementById('report-table-container').innerHTML=tbl;
 }
