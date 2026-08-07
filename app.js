@@ -757,24 +757,76 @@ function renderDashboard(){
   bar.style.width=pct.toFixed(1)+'%';
   bar.className='progress-bar-fill'+(pct>=100?' danger':pct>=80?' warning':'');
   document.getElementById('overall-pct-label').textContent=pct.toFixed(1)+'%';
-  // breakdown
-  const uniqueManganh = [...new Set(data.map(r => r.manganh || 'Chưa phân ngành'))].sort();
-  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f43f5e'];
-  let bd = '';
-  uniqueManganh.forEach((manganh, i) => {
-    const gd = data.filter(r => (r.manganh || 'Chưa phân ngành') === manganh);
-    const ga = gd.reduce((s, r) => s + calcKpDuocSD(r), 0);
-    const gu = gd.reduce((s, r) => s + (+r.daDung || 0), 0);
-    const gp = ga > 0 ? Math.min(100, gu / ga * 100) : 0;
-    const color = colors[i % colors.length];
+  // Charts
+  if (typeof echarts !== 'undefined') {
+    const pieEl = document.getElementById('chart-pie-dashboard');
+    if (pieEl) {
+      const pieChart = echarts.init(pieEl);
+      const groups = ['KP THƯỜNG XUYÊN', 'KP KHÔNG THƯỜNG XUYÊN', 'TIẾT KIỆM CHI THƯỜNG XUYÊN'];
+      const pieData = groups.map(g => {
+        return {
+          name: g,
+          value: data.filter(r => r.group === g).reduce((s, r) => s + calcKpDuocSD(r), 0)
+        };
+      }).filter(d => d.value > 0);
+      
+      pieChart.setOption({
+        tooltip: { trigger: 'item', formatter: (p) => `${p.name}<br/>${fmt(p.value)} (${p.percent}%)`, backgroundColor: 'rgba(15, 23, 42, 0.9)', borderColor: '#334155', textStyle: { color: '#f8fafc' } },
+        legend: { top: 'bottom', textStyle: { color: '#94a3b8' }, itemStyle: { borderWidth: 0 } },
+        color: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'],
+        series: [{
+          name: 'Cơ cấu', type: 'pie', radius: ['40%', '70%'],
+          avoidLabelOverlap: false,
+          itemStyle: { borderRadius: 6, borderColor: '#1e293b', borderWidth: 2 },
+          label: { show: false, position: 'center' },
+          emphasis: { label: { show: false } },
+          labelLine: { show: false },
+          data: pieData.length > 0 ? pieData : [{name:'Chưa có dữ liệu', value:0}]
+        }]
+      });
+    }
+
+    const barEl = document.getElementById('chart-bar-dashboard');
+    if (barEl) {
+      const barChart = echarts.init(barEl);
+      const uniqueManganh = [...new Set(data.map(r => r.manganh || 'Chưa phân ngành'))].sort();
+      const manganhNames = [];
+      const allocatedData = [];
+      const usedData = [];
+      uniqueManganh.forEach(manganh => {
+        const gd = data.filter(r => (r.manganh || 'Chưa phân ngành') === manganh);
+        const ga = gd.reduce((s, r) => s + calcKpDuocSD(r), 0);
+        const gu = gd.reduce((s, r) => s + (+r.daDung || 0), 0);
+        manganhNames.push(manganh.length > 15 ? manganh.substring(0,15)+'...' : manganh);
+        allocatedData.push(ga);
+        usedData.push(gu);
+      });
+
+      barChart.setOption({
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: (p) => {
+          let s = p[0].axisValue + '<br/>';
+          p.forEach(x => { s += `${x.marker} ${x.seriesName}: <b>${fmt(x.value)}</b><br/>`; });
+          return s;
+        }, backgroundColor: 'rgba(15, 23, 42, 0.9)', borderColor: '#334155', textStyle: { color: '#f8fafc' } },
+        legend: { data: ['Được cấp', 'Đã sử dụng'], textStyle: { color: '#94a3b8' } },
+        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+        xAxis: { type: 'category', data: manganhNames, axisLabel: { color: '#94a3b8' }, axisLine: { lineStyle: { color: '#334155' } } },
+        yAxis: { type: 'value', axisLabel: { color: '#94a3b8', formatter: (value) => (value/1000000).toFixed(0) + 'Tr' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        series: [
+          { name: 'Được cấp', type: 'bar', data: allocatedData, itemStyle: { color: '#3b82f6', borderRadius: [4, 4, 0, 0] } },
+          { name: 'Đã sử dụng', type: 'bar', data: usedData, itemStyle: { color: '#10b981', borderRadius: [4, 4, 0, 0] } }
+        ]
+      });
+    }
     
-    bd += `<div class="breakdown-item">
-      <div class="breakdown-header"><span class="breakdown-name">Mã ngành: ${manganh}</span><span class="breakdown-pct" style="color:${color}">${gp.toFixed(1)}%</span></div>
-      <div class="breakdown-bar-bg"><div class="breakdown-bar-fill" style="width:${gp.toFixed(1)}%;background:${color}"></div></div>
-      <div class="breakdown-values"><span>Đã dùng: ${fmt(gu)}</span><span>Còn lại: ${fmt(ga-gu)}</span></div>
-    </div>`;
-  });
-  document.getElementById('category-breakdown').innerHTML=bd||'<div class="empty-state"><div class="empty-icon">📂</div><p>Chưa có dữ liệu</p></div>';
+    if(!window._resizeDashboardChartsAttached) {
+      window.addEventListener('resize', () => {
+        if(document.getElementById('chart-pie-dashboard')) echarts.getInstanceByDom(document.getElementById('chart-pie-dashboard'))?.resize();
+        if(document.getElementById('chart-bar-dashboard')) echarts.getInstanceByDom(document.getElementById('chart-bar-dashboard'))?.resize();
+      });
+      window._resizeDashboardChartsAttached = true;
+    }
+  }
   // alerts - Chỉ cảnh báo đối với các nội dung lớn (có Mục)
   const alertData = [...overItems, ...warnItems]
     .filter(r => r.muc !== '') 

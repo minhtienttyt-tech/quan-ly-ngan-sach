@@ -12,6 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="style.css?v=4"/>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 </head>
 <body>
 
@@ -365,16 +366,23 @@
           <div class="two-col">
             <div class="card">
               <div class="card-header">
-                <h2 class="card-title">🗂️ Phân Bổ Theo Nhóm Mục</h2>
+                <h2 class="card-title">Cơ Cấu Ngân Sách Theo Nhóm Mục</h2>
               </div>
-              <div id="category-breakdown"></div>
+              <div id="chart-pie-dashboard" class="chart-container" style="height: 320px;"></div>
             </div>
             <div class="card">
               <div class="card-header">
-                <h2 class="card-title">🚨 Các Khoản Sắp Hết / Vượt KP</h2>
+                <h2 class="card-title">Kinh Phí Theo Ngành / Lĩnh Vực</h2>
               </div>
-              <div id="alert-items"></div>
+              <div id="chart-bar-dashboard" class="chart-container" style="height: 320px;"></div>
             </div>
+          </div>
+          
+          <div class="card" style="margin-top: 20px;">
+            <div class="card-header">
+              <h2 class="card-title">Các Khoản Cảnh Báo</h2>
+            </div>
+            <div id="alert-items"></div>
           </div>
         </div>
 
