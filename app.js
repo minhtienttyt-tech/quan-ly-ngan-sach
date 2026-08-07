@@ -1163,7 +1163,31 @@ function renderReport(){
       </td>
     </tr>`;
 
-    // Detailed items removed as per user request
+    // Render "Mục" level items (summary items)
+    const mucItems = gd.filter(r => r.muc !== '');
+    mucItems.forEach(r => {
+      const a = calcKpDuocSD(r);
+      const u = (+r.daDung || 0);
+      if (a === 0 && u === 0) return; // Hide empty items
+
+      const pct = a>0 ? u/a*100 : 0;
+      const st = pct>=100?'danger':pct>=80?'warning':'';
+      
+      tbl+=`<tr style="border-bottom:1px solid var(--border); transition:background 0.2s;">
+        <td style="padding:12px 12px 12px 24px; color:var(--text-secondary); max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${r.noidung}">${r.noidung}</td>
+        <td class="num" style="padding:12px;">${fmt(a)}</td>
+        <td class="num" style="padding:12px;">${fmt(u)}</td>
+        <td class="num" style="padding:12px; color:${a-u<0?'var(--red-light)':'inherit'}">${fmt(a-u)}</td>
+        <td style="padding:12px;">
+          <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px;">
+            <span></span><span style="font-weight:600; color:${st==='danger'?'var(--red-light)':st==='warning'?'var(--orange-light)':'var(--text-secondary)'}">${pct.toFixed(1)}%</span>
+          </div>
+          <div class="progress-bar-bg" style="height:4px; background:rgba(148,163,184,0.1);">
+            <div class="progress-bar-fill ${st}" style="width:${Math.min(100, pct)}%"></div>
+          </div>
+        </td>
+      </tr>`;
+    });
   });
 
   const tpct = grandTotalA > 0 ? grandTotalU / grandTotalA * 100 : 0;
