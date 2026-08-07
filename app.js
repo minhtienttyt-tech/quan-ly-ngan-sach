@@ -990,7 +990,7 @@ function renderTable(){
 
     // Cộng Mã ngành
     const manganhRemain = manganhAlloc - manganhUsed;
-    html += `<tr class="row-subtotal" style="background: rgba(16,185,129,0.05) !important">
+    html += `<tr class="row-subtotal" style="background: var(--green-glow) !important">
       <td colspan="4" style="text-align:right;padding-right:12px; font-weight: bold; color: var(--green-light)">CỘNG MÃ NGÀNH ${manganh}</td>
       <td class="td-number col-dtcapnam">${fmt(manganhItems.reduce((s,r)=>s+(+r.dtCapNam||0),0))}</td>
       <td class="td-number col-tonnamtruoc">${fmt(manganhItems.reduce((s,r)=>s+(+r.tonNamTruoc||0),0))}</td>
