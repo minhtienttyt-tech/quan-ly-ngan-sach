@@ -349,6 +349,22 @@ body { background: var(--bg-base); color: var(--text-primary); min-height: 100vh
 .progress-bar-fill.warning { background: linear-gradient(90deg, var(--orange), #f59e0b); }
 .progress-bar-fill.danger { background: linear-gradient(90deg, var(--red), #dc2626); }
 .progress-legend { display: flex; gap: 20px; font-size: 12px; color: var(--text-secondary); }
+
+/* ===== PERIOD SELECTOR ===== */
+.period-selector {
+  display: flex; background: var(--bg-surface); padding: 4px; border-radius: 8px; border: 1px solid var(--border);
+  width: fit-content;
+}
+.period-btn {
+  background: transparent; border: none; color: var(--text-secondary); padding: 6px 16px;
+  border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; font-family: inherit;
+  transition: all var(--transition);
+}
+.period-btn:hover { color: var(--text-primary); }
+.period-btn.active {
+  background: var(--blue-glow); color: var(--blue-light); font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; vertical-align: middle; }
 .dot.green { background: var(--green); }
 .dot.orange { background: var(--orange); }

@@ -83,7 +83,46 @@ const DEFAULT_DATA=[
 let currentYear=new Date().getFullYear();
 function getStorageKey(){return 'budget_items_'+currentYear;}
 let items=[];
-let currentPage=1;const PAGE_SIZE=50;
+let currentPage = 1;
+const PAGE_SIZE = 100;
+let dashboardPeriod = 'year';
+let reportPeriod = 'year';
+
+function scaleData(r, period) {
+  let scale = 1;
+  if (period === 'month') scale = 1 / 12;
+  else if (period === 'quarter') scale = 1 / 4;
+  return {
+    ...r,
+    dtCapNam: (r.dtCapNam || 0) * scale,
+    tonNamTruoc: (r.tonNamTruoc || 0) * scale,
+    kpCapNam: (r.kpCapNam || 0) * scale,
+    daDung: (r.daDung || 0) * scale,
+    giuLai10: (r.giuLai10 || 0) * scale,
+    tietKiem5: (r.tietKiem5 || 0) * scale
+  };
+}
+
+function setDashboardPeriod(period) {
+  dashboardPeriod = period;
+  if(event && event.target) {
+    const btns = document.querySelectorAll('#dashboardPeriodSelector .period-btn');
+    btns.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+  renderDashboard();
+}
+
+function setReportPeriod(period) {
+  reportPeriod = period;
+  if(event && event.target) {
+    const btns = document.querySelectorAll('#reportPeriodSelector .period-btn');
+    btns.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+  if (currentNavFilter === 'report') renderReport();
+}
+
 let filterText='',filterGroup='',filterStatus='';
 let editingId=null;
 let savedScrollPos=null; // Lưu vị trí cuộn bảng khi sửa
@@ -740,7 +779,8 @@ function budgetNavigate(page, filter=''){
 
 // ===== DASHBOARD =====
 function renderDashboard(){
-  const data=items.filter(x=>!x.isGroupHeader);
+  let rawData = items.filter(x=>!x.isGroupHeader);
+  const data = rawData.map(r => scaleData(r, dashboardPeriod));
   const totalAlloc=data.reduce((s,r)=>s+calcKpDuocSD(r),0);
   const totalUsed=data.reduce((s,r)=>s+(+r.daDung||0),0);
   const totalRemain=totalAlloc-totalUsed;
@@ -1043,7 +1083,8 @@ function goPage(p){currentPage=p;renderTable();}
 
 // ===== REPORT =====
 function renderReport(){
-  const data=items.filter(x=>!x.isGroupHeader);
+  let rawData = items.filter(x=>!x.isGroupHeader);
+  const data = rawData.map(r => scaleData(r, reportPeriod));
   ['KP THƯỜNG XUYÊN','KP KHÔNG THƯỜNG XUYÊN'].forEach((g,i)=>{
     const gd=data.filter(r=>r.group===g);
     const ga=gd.reduce((s,r)=>s+calcKpDuocSD(r),0);

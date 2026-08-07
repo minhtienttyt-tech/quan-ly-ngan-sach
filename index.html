@@ -302,6 +302,14 @@
 
         <!-- DASHBOARD PAGE -->
         <div class="page active" id="page-dashboard">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="font-size: 16px; font-weight: 600; color: var(--text-primary);">Tổng quan Tình hình Sử dụng NSNN</h2>
+            <div class="period-selector" id="dashboardPeriodSelector">
+              <button class="period-btn active" onclick="setDashboardPeriod('year')">Năm</button>
+              <button class="period-btn" onclick="setDashboardPeriod('quarter')">Quý</button>
+              <button class="period-btn" onclick="setDashboardPeriod('month')">Tháng</button>
+            </div>
+          </div>
           <!-- KPI Cards -->
           <div class="kpi-grid">
             <div class="kpi-card kpi-blue">
@@ -566,6 +574,17 @@
 
         <!-- REPORT PAGE -->
         <div class="page" id="page-report">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+              <h2 style="font-size: 16px; font-weight: 600; color: var(--text-primary);">Báo Cáo Tổng Hợp</h2>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Phân tích và thống kê tình hình sử dụng ngân sách</div>
+            </div>
+            <div class="period-selector" id="reportPeriodSelector">
+              <button class="period-btn active" onclick="setReportPeriod('year')">Năm</button>
+              <button class="period-btn" onclick="setReportPeriod('quarter')">Quý</button>
+              <button class="period-btn" onclick="setReportPeriod('month')">Tháng</button>
+            </div>
+          </div>
           <div class="report-kpi-grid">
             <div class="kpi-card kpi-blue">
               <div class="kpi-icon">📊</div>
