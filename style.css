@@ -300,6 +300,7 @@ body { background: var(--bg-base); color: var(--text-primary); min-height: 100vh
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-bottom: 20px;
+}
 .report-kpi-grid {
   display: grid;
   grid-template-columns: 2fr 2fr 1.1fr 1.1fr;
